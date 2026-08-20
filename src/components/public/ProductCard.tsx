@@ -21,7 +21,8 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
             src={image.url}
             alt={image.alt || product.name}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            decoding="async"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="grid h-full place-items-center text-metal-600">Sem imagem</div>

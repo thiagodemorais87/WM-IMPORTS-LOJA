@@ -2,21 +2,33 @@ import { supabase } from '@/lib/supabase'
 import type { CatalogFilters, Category, Product, ProductImage, ProductVariant, ProductWithRelations } from '@/types'
 import { slugify } from '@/lib/slug'
 
-function mapProduct(row: Product & {
-  category?: Category | null
+function mapProduct(row: Partial<Product> & {
+  category?: Partial<Category> | null
   product_images?: ProductImage[]
   product_variants?: ProductVariant[]
 }): ProductWithRelations {
   return {
-    ...row,
-    price: Number(row.price),
+    id: row.id!,
+    category_id: row.category_id ?? null,
+    name: row.name ?? '',
+    slug: row.slug ?? '',
+    description: row.description ?? null,
+    additional_info: row.additional_info ?? null,
+    sku: row.sku ?? null,
+    price: Number(row.price ?? 0),
     promotional_price: row.promotional_price == null ? null : Number(row.promotional_price),
-    category: row.category ?? null,
+    status: row.status ?? 'draft',
+    featured: Boolean(row.featured),
+    is_new: Boolean(row.is_new),
+    created_at: row.created_at ?? '',
+    updated_at: row.updated_at ?? '',
+    category: (row.category as Category | null) ?? null,
     images: (row.product_images ?? []).sort((a, b) => a.display_order - b.display_order),
     variants: (row.product_variants ?? []).sort((a, b) => a.display_order - b.display_order),
   }
 }
 
+/** Detalhe / edição — grafo completo */
 const PRODUCT_SELECT = `
   *,
   category:categories(*),
@@ -24,10 +36,25 @@ const PRODUCT_SELECT = `
   product_variants(*)
 `
 
+/** Cards e catálogo público — campos necessários para ProductCard + filtros */
+const PRODUCT_CARD_SELECT = `
+  id, category_id, name, slug, sku, price, promotional_price, status, featured, is_new, created_at, updated_at,
+  category:categories(id, name, slug),
+  product_images(id, url, alt, is_primary, display_order),
+  product_variants(id, size_label, quantity, active, display_order)
+`
+
+/** Listagens admin / selects de venda e estoque — sem imagens */
+const PRODUCT_ADMIN_LIST_SELECT = `
+  id, category_id, name, slug, sku, price, promotional_price, status, featured, is_new, created_at, updated_at,
+  category:categories(id, name, slug),
+  product_variants(id, size_label, sku, quantity, active, display_order)
+`
+
 export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) {
   let query = supabase
     .from('products')
-    .select(PRODUCT_SELECT)
+    .select(PRODUCT_CARD_SELECT)
     .eq('status', 'active')
 
   if (filters.sort === 'price_asc') query = query.order('price', { ascending: true })
@@ -83,7 +110,7 @@ export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) 
 export async function getFeaturedProducts() {
   const { data, error } = await supabase
     .from('products')
-    .select(PRODUCT_SELECT)
+    .select(PRODUCT_CARD_SELECT)
     .eq('status', 'active')
     .eq('featured', true)
     .order('created_at', { ascending: false })
@@ -96,7 +123,7 @@ export async function getFeaturedProducts() {
 export async function getRecentProducts() {
   const { data, error } = await supabase
     .from('products')
-    .select(PRODUCT_SELECT)
+    .select(PRODUCT_CARD_SELECT)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(8)
@@ -116,8 +143,8 @@ export async function getPublicProduct(idOrSlug: string) {
   return data ? mapProduct(data as never) : null
 }
 
-export async function listAdminProducts(search = '', status?: string) {
-  let query = supabase.from('products').select(PRODUCT_SELECT).order('created_at', { ascending: false })
+export async function listAdminProducts(status?: string) {
+  let query = supabase.from('products').select(PRODUCT_ADMIN_LIST_SELECT).order('created_at', { ascending: false })
 
   if (status && status !== 'all') {
     query = query.eq('status', status)
@@ -126,16 +153,7 @@ export async function listAdminProducts(search = '', status?: string) {
   const { data, error } = await query
   if (error) throw error
 
-  let products = (data ?? []).map((row) => mapProduct(row as never))
-  if (search) {
-    const term = search.toLowerCase()
-    products = products.filter((product) =>
-      [product.name, product.sku, product.category?.name]
-        .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(term)),
-    )
-  }
-  return products
+  return (data ?? []).map((row) => mapProduct(row as never))
 }
 
 export async function getAdminProduct(id: string) {
@@ -199,7 +217,10 @@ export async function deleteProduct(id: string) {
   if (error) throw error
 }
 
-export async function duplicateProduct(product: ProductWithRelations) {
+export async function duplicateProduct(productId: string) {
+  const product = await getAdminProduct(productId)
+  if (!product) throw new Error('Produto não encontrado.')
+
   const copy = await createProduct({
     name: `${product.name} (cópia)`,
     category_id: product.category_id,

@@ -1,27 +1,28 @@
 import { supabase } from '@/lib/supabase'
 import type { DashboardStats, ProductWithRelations } from '@/types'
-import { listAdminProducts } from '@/services/products.service'
 import { getStoreSettings } from '@/services/settings.service'
 import { totalStock } from '@/lib/stock'
 import { subDays, format } from 'date-fns'
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [products, settings, salesResult, itemsResult] = await Promise.all([
-    listAdminProducts(),
+  const [productsResult, settings, salesResult, itemsResult] = await Promise.all([
+    supabase.from('products').select('id, status, product_variants(quantity)'),
     getStoreSettings(),
     supabase.from('sales').select('id, total, sold_at').order('sold_at', { ascending: false }),
     supabase.from('sale_items').select('product_name, quantity'),
   ])
 
+  if (productsResult.error) throw productsResult.error
   if (salesResult.error) throw salesResult.error
   if (itemsResult.error) throw itemsResult.error
 
+  const products = productsResult.data ?? []
   const threshold = settings?.low_stock_threshold ?? 3
   const active = products.filter((product) => product.status === 'active')
-  const units = products.reduce((sum, product) => sum + totalStock(product.variants), 0)
-  const outOfStock = products.filter((product) => totalStock(product.variants) === 0).length
+  const units = products.reduce((sum, product) => sum + totalStock(product.product_variants ?? []), 0)
+  const outOfStock = products.filter((product) => totalStock(product.product_variants ?? []) === 0).length
   const lowStock = products.filter((product) => {
-    const qty = totalStock(product.variants)
+    const qty = totalStock(product.product_variants ?? [])
     return qty > 0 && qty <= threshold
   }).length
 

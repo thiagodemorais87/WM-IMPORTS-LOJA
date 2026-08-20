@@ -66,23 +66,23 @@ export function BannersPage() {
         }}
       >
         <Field label="Título">
-          <Input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+          <Input required value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
         </Field>
         <Field label="Subtítulo">
-          <Textarea value={form.subtitle} onChange={(event) => setForm({ ...form, subtitle: event.target.value })} />
+          <Textarea value={form.subtitle} onChange={(event) => setForm((prev) => ({ ...prev, subtitle: event.target.value }))} />
         </Field>
         <Field label="Texto extra">
-          <Input value={form.extra_text} onChange={(event) => setForm({ ...form, extra_text: event.target.value })} />
+          <Input value={form.extra_text} onChange={(event) => setForm((prev) => ({ ...prev, extra_text: event.target.value }))} />
         </Field>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Botão">
-            <Input value={form.button_text} onChange={(event) => setForm({ ...form, button_text: event.target.value })} />
+            <Input value={form.button_text} onChange={(event) => setForm((prev) => ({ ...prev, button_text: event.target.value }))} />
           </Field>
           <Field label="Link" hint="Use /produtos ou whatsapp">
-            <Input value={form.button_link} onChange={(event) => setForm({ ...form, button_link: event.target.value })} />
+            <Input value={form.button_link} onChange={(event) => setForm((prev) => ({ ...prev, button_link: event.target.value }))} />
           </Field>
           <Field label="Tipo">
-            <Select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as BannerType })}>
+            <Select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value as BannerType }))}>
               {Object.entries(BANNER_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}

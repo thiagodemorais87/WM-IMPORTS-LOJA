@@ -7,6 +7,32 @@ import { ConfirmDialog } from '@/components/ui/Modal'
 import { createCategory, deleteCategory, listAdminCategories, updateCategory } from '@/services/categories.service'
 import type { Category } from '@/types'
 
+function CategoryDescriptionField({ item }: { item: Category }) {
+  const [description, setDescription] = useState(item.description ?? '')
+
+  useEffect(() => {
+    setDescription(item.description ?? '')
+  }, [item.id, item.description])
+
+  return (
+    <Textarea
+      className="mt-3"
+      value={description}
+      onChange={(event) => setDescription(event.target.value)}
+      onBlur={async (event) => {
+        const next = event.target.value
+        if (next === (item.description ?? '')) return
+        await updateCategory(item.id, {
+          name: item.name,
+          description: next,
+          active: item.active,
+          display_order: item.display_order,
+        })
+      }}
+    />
+  )
+}
+
 export function CategoriesPage() {
   const [items, setItems] = useState<Category[]>([])
   const [name, setName] = useState('')
@@ -71,23 +97,7 @@ export function CategoriesPage() {
                 </Button>
               </div>
             </div>
-            <Textarea
-              className="mt-3"
-              value={item.description ?? ''}
-              onBlur={async (event) => {
-                await updateCategory(item.id, {
-                  name: item.name,
-                  description: event.target.value,
-                  active: item.active,
-                  display_order: item.display_order,
-                })
-              }}
-              onChange={(event) =>
-                setItems((current) =>
-                  current.map((row) => (row.id === item.id ? { ...row, description: event.target.value } : row)),
-                )
-              }
-            />
+            <CategoryDescriptionField item={item} />
           </div>
         ))}
       </div>

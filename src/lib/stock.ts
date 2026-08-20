@@ -15,7 +15,7 @@ export function availableSizes(variants: ProductVariant[]) {
     .sort((a, b) => a.display_order - b.display_order)
 }
 
-export function totalStock(variants: ProductVariant[]) {
+export function totalStock(variants: Array<Pick<ProductVariant, 'quantity'>>) {
   return variants.reduce((sum, variant) => sum + variant.quantity, 0)
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Seo } from '@/components/ui/Seo'
@@ -36,6 +36,8 @@ export function ProductFormPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [images, setImages] = useState<ProductImage[]>([])
   const [previews, setPreviews] = useState<{ file: File; url: string }[]>([])
+  const previewsRef = useRef(previews)
+  previewsRef.current = previews
   const [variants, setVariants] = useState<VariantDraft[]>([
     { size_label: 'M', sku: '', quantity: 0, active: true, display_order: 1 },
   ])
@@ -89,6 +91,12 @@ export function ProductFormPage() {
       })
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    return () => {
+      previewsRef.current.forEach((preview) => URL.revokeObjectURL(preview.url))
+    }
+  }, [])
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -147,10 +155,10 @@ export function ProductFormPage() {
       <section className="space-y-4 rounded-2xl border border-white/10 p-5">
         <h2 className="font-display text-lg">Informações principais</h2>
         <Field label="Nome">
-          <Input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <Input required value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
         </Field>
         <Field label="Categoria">
-          <Select value={form.category_id} onChange={(event) => setForm({ ...form, category_id: event.target.value })}>
+          <Select value={form.category_id} onChange={(event) => setForm((prev) => ({ ...prev, category_id: event.target.value }))}>
             <option value="">Sem categoria</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -160,17 +168,17 @@ export function ProductFormPage() {
           </Select>
         </Field>
         <Field label="Descrição">
-          <Textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+          <Textarea value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
         </Field>
         <Field label="Informações adicionais">
-          <Textarea value={form.additional_info} onChange={(event) => setForm({ ...form, additional_info: event.target.value })} />
+          <Textarea value={form.additional_info} onChange={(event) => setForm((prev) => ({ ...prev, additional_info: event.target.value }))} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Preço">
-            <Input type="number" min="0" step="0.01" required value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} />
+            <Input type="number" min="0" step="0.01" required value={form.price} onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))} />
           </Field>
           <Field label="Preço promocional" hint="Opcional. Deixe vazio se não houver promoção real.">
-            <Input type="number" min="0" step="0.01" value={form.promotional_price} onChange={(event) => setForm({ ...form, promotional_price: event.target.value })} />
+            <Input type="number" min="0" step="0.01" value={form.promotional_price} onChange={(event) => setForm((prev) => ({ ...prev, promotional_price: event.target.value }))} />
           </Field>
         </div>
       </section>
@@ -178,22 +186,22 @@ export function ProductFormPage() {
       <section className="space-y-4 rounded-2xl border border-white/10 p-5">
         <h2 className="font-display text-lg">Identificação</h2>
         <Field label="SKU">
-          <Input value={form.sku} onChange={(event) => setForm({ ...form, sku: event.target.value })} />
+          <Input value={form.sku} onChange={(event) => setForm((prev) => ({ ...prev, sku: event.target.value }))} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Status">
-            <Select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ProductStatus })}>
+            <Select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ProductStatus }))}>
               <option value="draft">Rascunho</option>
               <option value="active">Ativo</option>
               <option value="archived">Arquivado</option>
             </Select>
           </Field>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.featured} onChange={(event) => setForm({ ...form, featured: event.target.checked })} />
+            <input type="checkbox" checked={form.featured} onChange={(event) => setForm((prev) => ({ ...prev, featured: event.target.checked }))} />
             Destaque
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.is_new} onChange={(event) => setForm({ ...form, is_new: event.target.checked })} />
+            <input type="checkbox" checked={form.is_new} onChange={(event) => setForm((prev) => ({ ...prev, is_new: event.target.checked }))} />
             Produto novo
           </label>
         </div>
@@ -211,12 +219,13 @@ export function ProductFormPage() {
               ...current,
               ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
             ])
+            event.target.value = ''
           }}
         />
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
           {images.map((image, index) => (
             <div key={image.id} className="relative">
-              <img src={image.url} alt="" className="aspect-square w-full rounded-xl object-cover" />
+              <img src={image.url} alt="" decoding="async" loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
               <div className="mt-1 flex gap-1 text-[10px]">
                 <button
                   type="button"
@@ -265,8 +274,20 @@ export function ProductFormPage() {
               </div>
             </div>
           ))}
-          {previews.map((preview) => (
-            <img key={preview.url} src={preview.url} alt="Pré-visualização" className="aspect-square w-full rounded-xl object-cover" />
+          {previews.map((preview, previewIndex) => (
+            <div key={preview.url} className="relative">
+              <img src={preview.url} alt="Pré-visualização" decoding="async" className="aspect-square w-full rounded-xl object-cover" />
+              <button
+                type="button"
+                className="mt-1 text-[10px] text-red-300"
+                onClick={() => {
+                  URL.revokeObjectURL(preview.url)
+                  setPreviews((current) => current.filter((_, index) => index !== previewIndex))
+                }}
+              >
+                Remover
+              </button>
+            </div>
           ))}
         </div>
       </section>
