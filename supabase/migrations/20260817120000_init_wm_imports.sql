@@ -891,8 +891,8 @@
   do $$
   declare
     new_user_id uuid := gen_random_uuid();
-    user_email text := 'xafullt@gmail.com';
-    user_password text := 'WMImports@Sertania2026';
+    user_email text := 'william_mirog@hotmail.com';
+    user_password text := '253467aZ@';
   begin
     if exists (select 1 from auth.users where email = user_email) then
       return;
@@ -923,7 +923,7 @@
       crypt(user_password, gen_salt('bf')),
       now(),
       '{"provider":"email","providers":["email"]}'::jsonb,
-      jsonb_build_object('name', 'Thiago de Morais'),
+      jsonb_build_object('name', 'William Mirog'),
       now(),
       now(),
       '',
