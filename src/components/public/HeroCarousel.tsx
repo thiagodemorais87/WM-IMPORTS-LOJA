@@ -37,14 +37,22 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
       <div className="hero-grid absolute inset-0 opacity-40" />
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {banners.map((banner) => {
+          {banners.map((banner, bannerIndex) => {
             const isWhatsapp = banner.button_link === 'whatsapp'
             const href = isWhatsapp ? wa : banner.button_link || '/produtos'
+            const isActive = bannerIndex === index
             return (
               <div key={banner.id} className="relative min-w-0 flex-[0_0_100%]">
                 <div className="relative mx-auto grid min-h-[78vh] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:min-h-[82vh]">
                   {banner.image_url ? (
-                    <img src={banner.image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+                    <img
+                      src={banner.image_url}
+                      alt=""
+                      decoding="async"
+                      loading={isActive || bannerIndex === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={isActive || bannerIndex === 0 ? 'high' : 'auto'}
+                      className="absolute inset-0 h-full w-full object-cover opacity-25"
+                    />
                   ) : null}
                   <div className="relative space-y-6">
                     <p className="text-xs uppercase tracking-[0.35em] text-metal-400">

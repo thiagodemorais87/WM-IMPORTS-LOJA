@@ -18,7 +18,8 @@ import type { Banner, Category, ProductWithRelations, StoreHighlight } from '@/t
 
 export function HomePage() {
   const settings = useSettings()
-  const [loading, setLoading] = useState(true)
+  const [bannersLoading, setBannersLoading] = useState(true)
+  const [sectionsLoading, setSectionsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [banners, setBanners] = useState<Banner[]>([])
   const [highlights, setHighlights] = useState<StoreHighlight[]>([])
@@ -27,24 +28,29 @@ export function HomePage() {
   const [recent, setRecent] = useState<ProductWithRelations[]>([])
 
   function load() {
-    setLoading(true)
+    setBannersLoading(true)
+    setSectionsLoading(true)
     setError(null)
-    Promise.all([
-      listPublicBanners(),
+
+    void listPublicBanners()
+      .then(setBanners)
+      .catch(() => setError('Não foi possível carregar a loja.'))
+      .finally(() => setBannersLoading(false))
+
+    void Promise.all([
       listPublicHighlights(),
       listPublicCategories(),
       getFeaturedProducts(),
       getRecentProducts(),
     ])
-      .then(([nextBanners, nextHighlights, nextCategories, nextFeatured, nextRecent]) => {
-        setBanners(nextBanners)
+      .then(([nextHighlights, nextCategories, nextFeatured, nextRecent]) => {
         setHighlights(nextHighlights)
         setCategories(nextCategories)
         setFeatured(nextFeatured)
         setRecent(nextRecent)
       })
       .catch(() => setError('Não foi possível carregar a loja.'))
-      .finally(() => setLoading(false))
+      .finally(() => setSectionsLoading(false))
   }
 
   useEffect(() => {
@@ -62,8 +68,8 @@ export function HomePage() {
         </div>
       ) : (
         <>
-          {loading ? <Skeleton className="h-[70vh] rounded-none" /> : <HeroCarousel banners={banners} />}
-          <HighlightCards highlights={highlights} />
+          {bannersLoading ? <Skeleton className="h-[70vh] rounded-none" /> : <HeroCarousel banners={banners} />}
+          {sectionsLoading && !highlights.length ? null : <HighlightCards highlights={highlights} />}
 
           <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
             <FadeIn>
@@ -78,7 +84,7 @@ export function HomePage() {
               </div>
             </FadeIn>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {loading
+              {sectionsLoading
                 ? Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="aspect-[3/4]" />)
                 : featured.map((product) => <ProductCard key={product.id} product={product} />)}
             </div>
@@ -87,24 +93,26 @@ export function HomePage() {
           <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
             <h2 className="font-display text-3xl">Categorias</h2>
             <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {categories.map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/produtos?categoria=${category.slug}`}
-                  className="rounded-2xl border border-white/10 bg-panel px-4 py-6 text-center transition hover:border-metal-400/40"
-                >
-                  <span className="font-display text-lg">{category.name}</span>
-                </Link>
-              ))}
+              {sectionsLoading
+                ? Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-2xl" />)
+                : categories.map((category) => (
+                    <Link
+                      key={category.id}
+                      to={`/produtos?categoria=${category.slug}`}
+                      className="rounded-2xl border border-white/10 bg-panel px-4 py-6 text-center transition hover:border-metal-400/40"
+                    >
+                      <span className="font-display text-lg">{category.name}</span>
+                    </Link>
+                  ))}
             </div>
           </section>
 
           <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
             <h2 className="font-display text-3xl">Produtos recentes</h2>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {recent.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {sectionsLoading
+                ? Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="aspect-[3/4]" />)
+                : recent.map((product) => <ProductCard key={product.id} product={product} />)}
             </div>
           </section>
 

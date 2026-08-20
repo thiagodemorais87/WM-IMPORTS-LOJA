@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Seo } from '@/components/ui/Seo'
@@ -18,6 +18,7 @@ export function ProductsListPage() {
   const navigate = useNavigate()
   const [products, setProducts] = useState<ProductWithRelations[]>([])
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [status, setStatus] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +28,7 @@ export function ProductsListPage() {
     setLoading(true)
     setError(null)
     try {
-      setProducts(await listAdminProducts(search, status))
+      setProducts(await listAdminProducts(status))
     } catch {
       setError('Não foi possível carregar os produtos.')
     } finally {
@@ -36,11 +37,22 @@ export function ProductsListPage() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load()
-    }, 200)
+    void load()
+  }, [status])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim().toLowerCase()), 200)
     return () => window.clearTimeout(timer)
-  }, [search, status])
+  }, [search])
+
+  const filtered = useMemo(() => {
+    if (!debouncedSearch) return products
+    return products.filter((product) =>
+      [product.name, product.sku, product.category?.name]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(debouncedSearch)),
+    )
+  }, [products, debouncedSearch])
 
   return (
     <div>
@@ -69,7 +81,7 @@ export function ProductsListPage() {
         <ErrorState message={error} onRetry={load} />
       ) : loading ? (
         <PageLoader />
-      ) : products.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState title="Nenhum produto encontrado." />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-white/10">
@@ -85,7 +97,7 @@ export function ProductsListPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {filtered.map((product) => (
                 <tr key={product.id} className="border-t border-white/10">
                   <td className="px-4 py-3 text-white">{product.name}</td>
                   <td className="px-4 py-3">{product.category?.name ?? '—'}</td>
@@ -110,9 +122,13 @@ export function ProductsListPage() {
                       <button
                         className="text-metal-300 hover:text-white"
                         onClick={async () => {
-                          const copy = await duplicateProduct(product)
-                          toast.success('Produto duplicado.')
-                          navigate(`/admin/produtos/${copy.id}`)
+                          try {
+                            const copy = await duplicateProduct(product.id)
+                            toast.success('Produto duplicado.')
+                            navigate(`/admin/produtos/${copy.id}`)
+                          } catch (err) {
+                            toast.error(err instanceof Error ? err.message : 'Não foi possível duplicar.')
+                          }
                         }}
                       >
                         Duplicar
