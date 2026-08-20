@@ -83,7 +83,7 @@ A loja abre em `http://localhost:5173`.
 
 1. Abra o [SQL Editor do projeto](https://supabase.com/dashboard/project/tbgfhfcizzahpcpgukbh/sql/new).
 2. Cole e execute o arquivo `supabase/migrations/20260817120000_init_wm_imports.sql`.
-3. O seed cria o administrador `xafullt@gmail.com` (senha no final da migration). Entre em `/admin/login`.
+3. O seed cria o administrador `william_mirog@hotmail.com` (senha no final da migration). Entre em `/admin/login`.
 4. Desative o cadastro público em Authentication > Providers > Email > *Enable sign ups*.
 5. Em Configurações, informe o WhatsApp da loja.
 
@@ -109,8 +109,8 @@ npx supabase db push
 
 1. Em **Authentication > Providers**, mantenha o e-mail habilitado.
 2. Em **Authentication > Providers > Email**, desative o cadastro público (*Enable sign ups*).
-3. O seed da migration já cria o usuário `xafullt@gmail.com` e o trigger `handle_new_user` gera o perfil `admin`.
-4. Troque a senha inicial após o primeiro acesso.
+3. O seed da migration já cria o usuário `william_mirog@hotmail.com` e o trigger `handle_new_user` gera o perfil `admin`.
+4. Em produção já existente, rode `supabase/scripts/update_admin_credentials.sql` no SQL Editor para trocar o e-mail/senha.
 
 Não existe tela de cadastro para clientes.
 

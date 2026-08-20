@@ -46,7 +46,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
             const heroImage = banner.image_url || logo
             return (
               <div key={banner.id} className="relative min-w-0 flex-[0_0_100%]">
-                <div className="relative mx-auto grid min-h-[78vh] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:min-h-[82vh]">
+                <div className="relative mx-auto grid min-h-0 max-w-7xl items-center gap-6 px-4 py-10 pb-20 sm:gap-8 sm:px-6 sm:py-14 sm:pb-24 lg:grid-cols-[1.1fr_0.9fr] lg:min-h-[82vh] lg:gap-10 lg:py-16 lg:pb-16">
                   {!reduced ? (
                     <motion.div
                       aria-hidden
@@ -60,15 +60,15 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
                       />
                     </motion.div>
                   ) : null}
-                  <div className="relative z-10 space-y-6">
-                    <p className="text-xs uppercase tracking-[0.35em] text-metal-400">
+                  <div className="relative z-10 space-y-4 sm:space-y-6">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-metal-400 sm:text-xs">
                       {banner.extra_text || 'Sertânia/PE • Enviamos para todo o Brasil'}
                     </p>
-                    <h1 className="font-display text-4xl leading-[1.05] sm:text-6xl lg:text-7xl">
+                    <h1 className="font-display text-3xl leading-[1.05] sm:text-5xl lg:text-7xl">
                       <ShinyText text={banner.title} />
                     </h1>
                     {banner.subtitle ? (
-                      <p className="max-w-xl text-base text-metal-300 sm:text-lg">{banner.subtitle}</p>
+                      <p className="max-w-xl text-sm text-metal-300 sm:text-lg">{banner.subtitle}</p>
                     ) : null}
                     {href ? (
                       isWhatsapp ? (
@@ -82,14 +82,14 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
                       )
                     ) : null}
                   </div>
-                  <div className="relative z-10 hidden justify-center lg:flex">
-                    <div className="absolute inset-12 rounded-full bg-metal-300/10 blur-3xl" />
+                  <div className="relative z-10 flex justify-center">
+                    <div className="absolute inset-8 rounded-full bg-metal-300/10 blur-3xl sm:inset-12" />
                     <img
                       src={heroImage}
                       alt="WM Imports"
                       decoding="async"
                       loading={isActive || bannerIndex === 0 ? 'eager' : 'lazy'}
-                      className="relative w-[min(420px,100%)] bg-transparent object-contain drop-shadow-2xl"
+                      className="relative w-[min(220px,70%)] bg-transparent object-contain drop-shadow-2xl sm:w-[min(320px,80%)] lg:w-[min(420px,100%)]"
                     />
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-0 right-0 z-10 mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className="absolute bottom-4 left-0 right-0 z-10 mx-auto flex max-w-7xl items-center justify-between px-4 sm:bottom-6 sm:px-6">
         <div className="flex gap-2">
           {banners.map((banner, bannerIndex) => (
             <button
