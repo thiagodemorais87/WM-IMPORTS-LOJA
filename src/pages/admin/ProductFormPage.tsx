@@ -15,7 +15,9 @@ import {
   upsertVariants,
 } from '@/services/products.service'
 import { listAdminCategories } from '@/services/categories.service'
-import { makeObjectPath, removeImage, uploadImage } from '@/services/storage.service'
+import { makeObjectPath, removeImage, uploadImage, validateImageFile } from '@/services/storage.service'
+import { compressImageFile } from '@/lib/image-compress'
+import { MAX_PRODUCT_IMAGES } from '@/constants'
 import type { Category, ProductImage, ProductStatus } from '@/types'
 
 interface VariantDraft {
@@ -46,13 +48,15 @@ export function ProductFormPage() {
     category_id: '',
     description: '',
     additional_info: '',
-    sku: '',
     price: '',
     promotional_price: '',
     status: 'draft' as ProductStatus,
     featured: false,
     is_new: true,
   })
+
+  const totalImages = images.length + previews.length
+  const slotsLeft = Math.max(0, MAX_PRODUCT_IMAGES - totalImages)
 
   useEffect(() => {
     listAdminCategories().then(setCategories).catch(() => setCategories([]))
@@ -68,7 +72,6 @@ export function ProductFormPage() {
           category_id: product.category_id ?? '',
           description: product.description ?? '',
           additional_info: product.additional_info ?? '',
-          sku: product.sku ?? '',
           price: String(product.price),
           promotional_price: product.promotional_price == null ? '' : String(product.promotional_price),
           status: product.status,
@@ -107,7 +110,7 @@ export function ProductFormPage() {
         category_id: form.category_id || null,
         description: form.description,
         additional_info: form.additional_info,
-        sku: form.sku,
+        sku: '',
         price: Number(form.price),
         promotional_price: form.promotional_price ? Number(form.promotional_price) : null,
         status: form.status,
@@ -117,20 +120,30 @@ export function ProductFormPage() {
       const product = isEdit && id ? await updateProduct(id, payload) : await createProduct(payload)
       await upsertVariants(
         product.id,
-        variants.map((variant, index) => ({ ...variant, display_order: index + 1 })),
+        variants.map((variant, index) => ({
+          ...variant,
+          sku: variant.sku || '',
+          display_order: index + 1,
+        })),
       )
 
+      let nextOrder = images.length
+      let primaryNeeded = images.length === 0
       for (const preview of previews) {
-        const path = makeObjectPath(product.id, preview.file)
-        const uploaded = await uploadImage('product-images', path, preview.file)
+        const compressed = await compressImageFile(preview.file)
+        validateImageFile(compressed)
+        const path = makeObjectPath(product.id, compressed)
+        const uploaded = await uploadImage('product-images', path, compressed)
+        nextOrder += 1
         await addProductImage({
           product_id: product.id,
           url: uploaded.url,
           storage_path: uploaded.path,
           alt: form.name,
-          is_primary: images.length === 0,
-          display_order: images.length + 1,
+          is_primary: primaryNeeded,
+          display_order: nextOrder,
         })
+        primaryNeeded = false
       }
 
       toast.success(isEdit ? 'Produto atualizado com sucesso.' : 'Produto cadastrado com sucesso.')
@@ -181,13 +194,6 @@ export function ProductFormPage() {
             <Input type="number" min="0" step="0.01" value={form.promotional_price} onChange={(event) => setForm((prev) => ({ ...prev, promotional_price: event.target.value }))} />
           </Field>
         </div>
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-white/10 p-5">
-        <h2 className="font-display text-lg">Identificação</h2>
-        <Field label="SKU">
-          <Input value={form.sku} onChange={(event) => setForm((prev) => ({ ...prev, sku: event.target.value }))} />
-        </Field>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Status">
             <Select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ProductStatus }))}>
@@ -209,31 +215,57 @@ export function ProductFormPage() {
 
       <section className="space-y-4 rounded-2xl border border-white/10 p-5">
         <h2 className="font-display text-lg">Imagens</h2>
+        <p className="text-sm text-metal-400">
+          Pode adicionar até {MAX_PRODUCT_IMAGES} fotos (JPEG/PNG/WebP). As imagens são comprimidas automaticamente antes do envio.
+        </p>
+        <p className="text-xs text-metal-500">
+          {totalImages}/{MAX_PRODUCT_IMAGES} fotos
+        </p>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
+          disabled={slotsLeft === 0}
           onChange={(event) => {
             const files = [...(event.target.files ?? [])]
-            setPreviews((current) => [
-              ...current,
-              ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
-            ])
             event.target.value = ''
+            if (!files.length) return
+
+            setPreviews((current) => {
+              const available = MAX_PRODUCT_IMAGES - images.length - current.length
+              if (available <= 0) {
+                toast.error(`Limite de ${MAX_PRODUCT_IMAGES} fotos por produto.`)
+                return current
+              }
+              const accepted = files.slice(0, available)
+              if (files.length > available) {
+                toast.message(`Só foram adicionadas ${accepted.length} foto(s). Limite: ${MAX_PRODUCT_IMAGES}.`)
+              }
+              try {
+                accepted.forEach(validateImageFile)
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : 'Arquivo de imagem inválido.')
+                return current
+              }
+              return [
+                ...current,
+                ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) })),
+              ]
+            })
           }}
         />
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {images.map((image, index) => (
             <div key={image.id} className="relative">
               <img src={image.url} alt="" decoding="async" loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
-              <div className="mt-1 flex gap-1 text-[10px]">
+              <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
                 <button
                   type="button"
                   className="text-metal-300"
                   onClick={async () => {
-                    const next = images.map((item, itemIndex) => ({
+                    const next = images.map((item) => ({
                       id: item.id,
-                      display_order: itemIndex,
+                      display_order: item.display_order,
                       is_primary: item.id === image.id,
                     }))
                     await updateImageOrder(next)
@@ -314,7 +346,7 @@ export function ProductFormPage() {
         </p>
         <div className="space-y-3">
           {variants.map((variant, index) => (
-            <div key={variant.id ?? `new-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-5">
+            <div key={variant.id ?? `new-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-4">
               <Input
                 placeholder="Tamanho (P, M, 40, Único)"
                 value={variant.size_label}
@@ -322,13 +354,6 @@ export function ProductFormPage() {
                   setVariants((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, size_label: event.target.value } : item)))
                 }
                 required
-              />
-              <Input
-                placeholder="SKU"
-                value={variant.sku}
-                onChange={(event) =>
-                  setVariants((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, sku: event.target.value } : item)))
-                }
               />
               <Input
                 type="number"

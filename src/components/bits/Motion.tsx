@@ -26,7 +26,22 @@ export function FadeIn({
 }
 
 export function ShinyText({ text, className }: { text: string; className?: string }) {
-  return <span className={`relative inline-block metal-text ${className ?? ''}`}>{text}</span>
+  const reduced = useReducedMotion()
+  return (
+    <span className={`relative inline-block metal-text ${className ?? ''}`}>
+      {text}
+      {reduced ? null : (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
+          initial={{ x: '-120%' }}
+          animate={{ x: '120%' }}
+          transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+          style={{ mixBlendMode: 'overlay' }}
+        />
+      )}
+    </span>
+  )
 }
 
 export function CountUp({ value }: { value: number }) {

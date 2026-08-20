@@ -59,7 +59,7 @@ export function ProductsPage() {
         <Input
           value={filters.search}
           onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-          placeholder="Nome, categoria ou SKU"
+          placeholder="Nome ou categoria"
         />
       </Field>
       <Field label="Categoria">

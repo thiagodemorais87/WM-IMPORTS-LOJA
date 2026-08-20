@@ -74,7 +74,7 @@ export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) 
   if (filters.search) {
     const term = filters.search.toLowerCase()
     products = products.filter((product) =>
-      [product.name, product.sku, product.category?.name]
+      [product.name, product.category?.name]
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(term)),
     )
@@ -214,7 +214,12 @@ export async function archiveProduct(id: string) {
 
 export async function deleteProduct(id: string) {
   const { error } = await supabase.from('products').delete().eq('id', id)
-  if (error) throw error
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('Produto já teve vendas ou movimentos de estoque. Prefira Arquivar.')
+    }
+    throw error
+  }
 }
 
 export async function duplicateProduct(productId: string) {
