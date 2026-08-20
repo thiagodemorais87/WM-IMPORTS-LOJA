@@ -1,6 +1,7 @@
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Banner } from '@/types'
@@ -12,6 +13,7 @@ import logo from '@/assets/logo.png'
 
 export function HeroCarousel({ banners }: { banners: Banner[] }) {
   const settings = useSettings()
+  const reduced = useReducedMotion()
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 6500, stopOnInteraction: false, stopOnMouseEnter: true }),
   ])
@@ -41,20 +43,24 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
             const isWhatsapp = banner.button_link === 'whatsapp'
             const href = isWhatsapp ? wa : banner.button_link || '/produtos'
             const isActive = bannerIndex === index
+            const heroImage = banner.image_url || logo
             return (
               <div key={banner.id} className="relative min-w-0 flex-[0_0_100%]">
                 <div className="relative mx-auto grid min-h-[78vh] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:min-h-[82vh]">
-                  {banner.image_url ? (
-                    <img
-                      src={banner.image_url}
-                      alt=""
-                      decoding="async"
-                      loading={isActive || bannerIndex === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={isActive || bannerIndex === 0 ? 'high' : 'auto'}
-                      className="absolute inset-0 h-full w-full object-cover opacity-25"
-                    />
+                  {!reduced ? (
+                    <motion.div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+                    >
+                      <motion.div
+                        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-metal-200/25 to-transparent"
+                        initial={{ x: '-40%' }}
+                        animate={{ x: '140%' }}
+                        transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
+                      />
+                    </motion.div>
                   ) : null}
-                  <div className="relative space-y-6">
+                  <div className="relative z-10 space-y-6">
                     <p className="text-xs uppercase tracking-[0.35em] text-metal-400">
                       {banner.extra_text || 'Sertânia/PE • Enviamos para todo o Brasil'}
                     </p>
@@ -76,9 +82,15 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
                       )
                     ) : null}
                   </div>
-                  <div className="relative hidden justify-center lg:flex">
+                  <div className="relative z-10 hidden justify-center lg:flex">
                     <div className="absolute inset-12 rounded-full bg-metal-300/10 blur-3xl" />
-                    <img src={logo} alt="WM Imports" className="relative w-[min(420px,100%)] drop-shadow-2xl" />
+                    <img
+                      src={heroImage}
+                      alt="WM Imports"
+                      decoding="async"
+                      loading={isActive || bannerIndex === 0 ? 'eager' : 'lazy'}
+                      className="relative w-[min(420px,100%)] bg-transparent object-contain drop-shadow-2xl"
+                    />
                   </div>
                 </div>
               </div>

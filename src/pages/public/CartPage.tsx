@@ -61,7 +61,13 @@ export function CartPage() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             {href ? (
-              <a href={href} target="_blank" rel="noreferrer" className="flex-1">
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1"
+                onClick={() => clear()}
+              >
                 <Button variant="whatsapp" className="w-full">
                   Solicitar pelo WhatsApp
                 </Button>
