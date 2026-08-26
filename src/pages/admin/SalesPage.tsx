@@ -63,7 +63,6 @@ export function SalesPage() {
                 {
                   variant_id: variant.id,
                   quantity,
-                  unit_price: Number(selected.promotional_price ?? selected.price),
                 },
               ],
             })
@@ -125,6 +124,12 @@ export function SalesPage() {
           <Field label="Observação">
             <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} />
           </Field>
+          {selected ? (
+            <p className="mt-2 text-xs text-metal-500">
+              O preço unitário é calculado no servidor a partir do catálogo
+              ({formatCurrency(Number(selected.promotional_price ?? selected.price))}).
+            </p>
+          ) : null}
         </div>
         <Button>Registrar venda</Button>
       </form>

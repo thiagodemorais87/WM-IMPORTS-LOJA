@@ -234,7 +234,7 @@ function BannerCard({
             <Field label="Botão">
               <Input value={buttonText} onChange={(event) => setButtonText(event.target.value)} />
             </Field>
-            <Field label="Link" hint="Use /produtos ou whatsapp">
+            <Field label="Link" hint="Use /produtos, whatsapp ou https://...">
               <Input value={buttonLink} onChange={(event) => setButtonLink(event.target.value)} />
             </Field>
             <div className="sm:col-span-2">
@@ -358,7 +358,7 @@ export function BannersPage() {
           <Field label="Botão">
             <Input value={form.button_text} onChange={(event) => setForm((prev) => ({ ...prev, button_text: event.target.value }))} />
           </Field>
-          <Field label="Link" hint="Use /produtos ou whatsapp">
+          <Field label="Link" hint="Use /produtos, whatsapp ou https://...">
             <Input value={form.button_link} onChange={(event) => setForm((prev) => ({ ...prev, button_link: event.target.value }))} />
           </Field>
           <Field label="Tipo">

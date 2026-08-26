@@ -1,7 +1,8 @@
   -- WM Imports — schema inicial, RLS, storage, funções e seed
-  -- Projeto: tbgfhfcizzahpcpgukbh
   -- Ordem: extensões → tabelas → índices → funções → triggers → estoque/vendas
-  --        → grants → RLS → policies → storage → seed (inclui usuário admin)
+  --        → grants → RLS → policies → storage → seed de catálogo
+  -- Admin: criar usuário no Dashboard e promover com supabase/scripts/bootstrap_admin.sql
+  -- Hardening adicional: supabase/migrations/20260826000000_security_hardening.sql
 
   -- ---------------------------------------------------------------------------
   -- 1. Extensões
@@ -17,7 +18,7 @@
     id uuid primary key references auth.users (id) on delete cascade,
     name text not null default '',
     email text not null default '',
-    role text not null default 'admin' check (role in ('admin')),
+    role text not null default 'none' check (role in ('none', 'admin')),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
   );
@@ -72,6 +73,7 @@
     size_label text not null,
     sku text,
     quantity integer not null default 0 check (quantity >= 0),
+    in_stock boolean generated always as (quantity > 0) stored,
     active boolean not null default true,
     display_order integer not null default 0,
     created_at timestamptz not null default now(),
@@ -225,9 +227,9 @@
     insert into public.profiles (id, name, email, role)
     values (
       new.id,
-      coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'Administrador'),
+      coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'Usuário'),
       coalesce(new.email, ''),
-      'admin'
+      'none'
     )
     on conflict (id) do update
       set email = excluded.email,
@@ -266,6 +268,95 @@
     after insert on auth.users
     for each row execute function public.handle_new_user();
 
+  create or replace function public.guard_profile_role()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+  as $$
+  begin
+    if coalesce(current_setting('wm.allow_role_change', true), '') = '1' then
+      return new;
+    end if;
+    if tg_op = 'INSERT' then
+      if new.role is distinct from 'none' then
+        new.role := 'none';
+      end if;
+      return new;
+    end if;
+    if tg_op = 'UPDATE' and new.role is distinct from old.role then
+      raise exception 'Alteração de role não permitida via API';
+    end if;
+    return new;
+  end;
+  $$;
+
+  drop trigger if exists trg_guard_profile_role on public.profiles;
+  create trigger trg_guard_profile_role
+    before insert or update on public.profiles
+    for each row execute function public.guard_profile_role();
+
+  create or replace function public.guard_variant_quantity()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+  as $$
+  begin
+    if coalesce(current_setting('wm.allow_stock_mutation', true), '') = '1' then
+      return new;
+    end if;
+    if tg_op = 'UPDATE' and new.quantity is distinct from old.quantity then
+      raise exception 'Altere o estoque apenas via adjust_stock ou register_sale';
+    end if;
+    return new;
+  end;
+  $$;
+
+  drop trigger if exists trg_guard_variant_quantity on public.product_variants;
+  create trigger trg_guard_variant_quantity
+    before update on public.product_variants
+    for each row execute function public.guard_variant_quantity();
+
+  create or replace function public.is_safe_banner_link(link text)
+  returns boolean
+  language sql
+  immutable
+  as $$
+    select
+      link is null
+      or btrim(link) = ''
+      or lower(btrim(link)) = 'whatsapp'
+      or btrim(link) ~ '^/'
+      or btrim(link) ~* '^https://'
+      or btrim(link) ~* '^http://';
+  $$;
+
+  create or replace function public.guard_banner_link()
+  returns trigger
+  language plpgsql
+  set search_path = public
+  as $$
+  begin
+    if new.button_link is not null and not public.is_safe_banner_link(new.button_link) then
+      raise exception 'button_link inválido: use path /..., https://..., http://... ou whatsapp';
+    end if;
+    if new.button_link is not null and (
+      lower(new.button_link) ~* '^\s*javascript:'
+      or lower(new.button_link) ~* '^\s*data:'
+      or lower(new.button_link) ~* '^\s*vbscript:'
+    ) then
+      raise exception 'button_link com protocolo perigoso';
+    end if;
+    return new;
+  end;
+  $$;
+
+  drop trigger if exists trg_guard_banner_link on public.banners;
+  create trigger trg_guard_banner_link
+    before insert or update on public.banners
+    for each row execute function public.guard_banner_link();
+
   -- ---------------------------------------------------------------------------
   -- 7. Funções de estoque e vendas
   -- ---------------------------------------------------------------------------
@@ -291,6 +382,8 @@
       raise exception 'Não autorizado';
     end if;
 
+    perform set_config('wm.allow_stock_mutation', '1', true);
+
     if p_type not in ('entrada', 'ajuste', 'devolucao') then
       raise exception 'Tipo de movimentação inválido';
     end if;
@@ -311,6 +404,9 @@
     v_before := v_variant.quantity;
 
     if p_type = 'ajuste' then
+      if p_quantity < 0 then
+        raise exception 'Ajuste não pode ser negativo';
+      end if;
       v_after := p_quantity;
       v_change := v_after - v_before;
     elsif p_type = 'entrada' then
@@ -369,11 +465,16 @@
     v_after integer;
     v_qty integer;
     v_price numeric(10, 2);
+    v_manual numeric(10, 2);
+    v_discount_reason text;
     v_total numeric(10, 2) := 0;
+    v_notes text := p_notes;
   begin
     if not public.is_admin() then
       raise exception 'Não autorizado';
     end if;
+
+    perform set_config('wm.allow_stock_mutation', '1', true);
 
     if p_payment_method not in ('pix', 'dinheiro', 'cartao', 'outro') then
       raise exception 'Forma de pagamento inválida';
@@ -390,7 +491,6 @@
     for v_item in select * from jsonb_array_elements(p_items)
     loop
       v_qty := (v_item->>'quantity')::integer;
-      v_price := (v_item->>'unit_price')::numeric;
 
       if v_qty is null or v_qty <= 0 then
         raise exception 'Quantidade inválida';
@@ -410,6 +510,36 @@
       end if;
 
       select * into v_product from public.products where id = v_variant.product_id;
+
+      if not found then
+        raise exception 'Produto não encontrado';
+      end if;
+
+      if v_product.promotional_price is not null
+         and v_product.promotional_price > 0
+         and v_product.promotional_price < v_product.price then
+        v_price := v_product.promotional_price;
+      else
+        v_price := v_product.price;
+      end if;
+
+      if v_item ? 'manual_unit_price' and nullif(v_item->>'manual_unit_price', '') is not null then
+        v_discount_reason := nullif(trim(coalesce(v_item->>'discount_reason', '')), '');
+        if v_discount_reason is null then
+          raise exception 'Desconto manual exige discount_reason';
+        end if;
+        v_manual := (v_item->>'manual_unit_price')::numeric;
+        if v_manual is null or v_manual < 0 then
+          raise exception 'Preço manual inválido';
+        end if;
+        v_price := v_manual;
+        v_notes := trim(both from coalesce(v_notes || E'\n', '') || format(
+          'Desconto item %s (%s): %s',
+          v_product.name,
+          v_variant.size_label,
+          v_discount_reason
+        ));
+      end if;
 
       v_before := v_variant.quantity;
       v_after := v_before - v_qty;
@@ -436,7 +566,10 @@
       );
     end loop;
 
-    update public.sales set total = v_total where id = v_sale_id;
+    update public.sales
+    set total = v_total,
+        notes = nullif(v_notes, '')
+    where id = v_sale_id;
 
     return v_sale_id;
   end;
@@ -457,11 +590,24 @@
     public.categories,
     public.products,
     public.product_images,
-    public.product_variants,
     public.store_settings,
     public.banners,
     public.store_highlights
   to anon, authenticated;
+
+  grant select (
+    id,
+    product_id,
+    size_label,
+    sku,
+    active,
+    display_order,
+    in_stock,
+    created_at,
+    updated_at
+  ) on public.product_variants to anon;
+
+  grant select on public.product_variants to authenticated;
 
   grant select, insert, update, delete on
     public.profiles,
@@ -469,12 +615,15 @@
     public.products,
     public.product_images,
     public.product_variants,
-    public.sales,
-    public.sale_items,
-    public.stock_movements,
     public.store_settings,
     public.banners,
     public.store_highlights
+  to authenticated;
+
+  grant select on
+    public.sales,
+    public.sale_items,
+    public.stock_movements
   to authenticated;
 
   grant usage, select on all sequences in schema public to authenticated;
@@ -505,9 +654,9 @@
 
   create policy profiles_insert_self on public.profiles
     for insert to authenticated
-    with check (id = auth.uid());
+    with check (id = auth.uid() and role = 'none');
 
-  create policy profiles_update_admin on public.profiles
+  create policy profiles_update_own_or_admin on public.profiles
     for update to authenticated
     using (public.is_admin() or id = auth.uid())
     with check (public.is_admin() or id = auth.uid());
@@ -563,23 +712,17 @@
     using (public.is_admin())
     with check (public.is_admin());
 
-  create policy sales_admin_all on public.sales
-    for all to authenticated
-    using (public.is_admin())
-    with check (public.is_admin());
+  create policy sales_admin_select on public.sales
+    for select to authenticated
+    using (public.is_admin());
 
-  create policy sale_items_admin_all on public.sale_items
-    for all to authenticated
-    using (public.is_admin())
-    with check (public.is_admin());
+  create policy sale_items_admin_select on public.sale_items
+    for select to authenticated
+    using (public.is_admin());
 
   create policy stock_movements_admin_select on public.stock_movements
     for select to authenticated
     using (public.is_admin());
-
-  create policy stock_movements_admin_insert on public.stock_movements
-    for insert to authenticated
-    with check (public.is_admin());
 
   create policy store_settings_public_select on public.store_settings
     for select to anon, authenticated
@@ -886,71 +1029,8 @@
       (p5, 'https://images.unsplash.com/photo-1511499767100-828d98131648?w=1200&q=80', 'seed/oculos-1.jpg', 'Óculos de Sol Premium', true, 1);
   end $$;
 
-  -- Usuário administrador do sistema
-  -- O trigger on_auth_user_created cria o registro em public.profiles
-  do $$
-  declare
-    new_user_id uuid := gen_random_uuid();
-    user_email text := 'william_mirog@hotmail.com';
-    user_password text := '253467aZ@';
-  begin
-    if exists (select 1 from auth.users where email = user_email) then
-      return;
-    end if;
+  -- Admin NÃO é criado aqui (sem senha no repositório).
+  -- 1) Crie o usuário em Authentication > Users no Dashboard.
+  -- 2) Promova com supabase/scripts/bootstrap_admin.sql (WHERE no e-mail do dono).
+  -- 3) Desative sign-ups públicos.
 
-    insert into auth.users (
-      instance_id,
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at,
-      confirmation_token,
-      email_change,
-      email_change_token_new,
-      recovery_token
-    ) values (
-      '00000000-0000-0000-0000-000000000000',
-      new_user_id,
-      'authenticated',
-      'authenticated',
-      user_email,
-      crypt(user_password, gen_salt('bf')),
-      now(),
-      '{"provider":"email","providers":["email"]}'::jsonb,
-      jsonb_build_object('name', 'William Mirog'),
-      now(),
-      now(),
-      '',
-      '',
-      '',
-      ''
-    );
-
-    insert into auth.identities (
-      user_id,
-      provider_id,
-      identity_data,
-      provider,
-      last_sign_in_at,
-      created_at,
-      updated_at
-    ) values (
-      new_user_id,
-      new_user_id::text,
-      jsonb_build_object(
-        'sub', new_user_id::text,
-        'email', user_email,
-        'email_verified', true
-      ),
-      'email',
-      now(),
-      now(),
-      now()
-    );
-  end $$;

@@ -30,6 +30,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data
 }
 
+/** Garante perfil com role=none. Nunca promove a admin pelo client. */
 export async function ensureProfile(user: User): Promise<Profile | null> {
   const existing = await getProfile(user.id)
   if (existing) return existing
@@ -39,8 +40,8 @@ export async function ensureProfile(user: User): Promise<Profile | null> {
     .insert({
       id: user.id,
       email: user.email ?? '',
-      name: (user.user_metadata?.name as string | undefined) ?? user.email?.split('@')[0] ?? 'Administrador',
-      role: 'admin',
+      name: (user.user_metadata?.name as string | undefined) ?? user.email?.split('@')[0] ?? 'Usuário',
+      role: 'none',
     })
     .select('*')
     .single()

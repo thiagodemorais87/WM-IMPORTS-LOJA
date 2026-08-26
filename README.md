@@ -10,7 +10,7 @@ Loja/catálogo online da **WM Imports**, em Sertânia/PE, com envio para todo o 
 - Home com carrossel, diferenciais, destaques e categorias
 - Catálogo com busca, filtros e ordenação
 - Página de produto com galeria, tamanhos e disponibilidade
-- Carrinho simples (sem pagamento)
+- Carrinho simples (intenção de compra, sem pagamento)
 - Solicitação pelo WhatsApp
 - Páginas Sobre e Contato
 
@@ -20,7 +20,7 @@ Loja/catálogo online da **WM Imports**, em Sertânia/PE, com envio para todo o 
 - CRUD de produtos, categorias, banners e diferenciais
 - Upload de imagens no Supabase Storage
 - Controle de estoque por variação/tamanho
-- Registro de vendas com baixa atômica de estoque
+- Registro de vendas com baixa atômica de estoque e preço calculado no servidor
 - Histórico de movimentações
 - Configurações da loja (WhatsApp, Instagram, limite de estoque baixo, textos)
 
@@ -43,14 +43,14 @@ src/
 ├── layouts/      # Shell público e do painel
 ├── hooks/
 ├── services/     # Chamadas ao Supabase e regras de negócio
-├── lib/          # Cliente Supabase, formatação, WhatsApp
+├── lib/          # Cliente Supabase, formatação, WhatsApp, URLs seguras
 ├── contexts/     # Auth, carrinho, configurações
 ├── types/
 ├── constants/
 └── routes/
 ```
 
-O frontend não usa Service Role Key. Toda proteção real está no RLS do Postgres.
+O frontend não usa Service Role Key. Toda proteção real está no RLS do Postgres e nas RPCs.
 
 ## Configuração local
 
@@ -81,48 +81,39 @@ A loja abre em `http://localhost:5173`.
 
 ## Primeiro uso (obrigatório)
 
-1. Abra o [SQL Editor do projeto](https://supabase.com/dashboard/project/tbgfhfcizzahpcpgukbh/sql/new).
-2. Cole e execute o arquivo `supabase/migrations/20260817120000_init_wm_imports.sql`.
-3. O seed cria o administrador `william_mirog@hotmail.com` (senha no final da migration). Entre em `/admin/login`.
-4. Desative o cadastro público em Authentication > Providers > Email > *Enable sign ups*.
-5. Em Configurações, informe o WhatsApp da loja.
+1. No SQL Editor do Supabase, execute nesta ordem:
+   - `supabase/migrations/20260817120000_init_wm_imports.sql`
+   - `supabase/migrations/20260826000000_security_hardening.sql`
+2. Em **Authentication > Providers > Email**, desative *Enable sign ups*.
+3. Crie o usuário admin em **Authentication > Users > Add user** (defina e-mail e senha forte no Dashboard — nunca use senhas de exemplos do Git).
+4. Execute `supabase/scripts/bootstrap_admin.sql` com o e-mail do dono (WHERE explícito; sem UPDATE massivo).
+5. Confirme: `select id, email, role from public.profiles where role = 'admin';`
+6. Entre em `/admin/login` e configure o WhatsApp em Configurações.
 
-Sem o passo 2 a loja não consegue ler produtos, categorias nem banners.
-
-### 1. Banco, RLS e Storage
-
-No Dashboard do Supabase, abra **SQL Editor** e execute o arquivo:
-
-`supabase/migrations/20260817120000_init_wm_imports.sql`
-
-Esse script cria tabelas, índices, funções de estoque, políticas RLS, buckets de imagens e dados iniciais (categorias, banners, destaques e produtos de exemplo).
-
-Via CLI, depois de autenticado:
+Via CLI (após `npx supabase login` e `link`):
 
 ```bash
-npx supabase login
-npx supabase link --project-ref tbgfhfcizzahpcpgukbh
 npx supabase db push
 ```
 
-### 2. Autenticação
+### Autenticação (produção)
 
-1. Em **Authentication > Providers**, mantenha o e-mail habilitado.
-2. Em **Authentication > Providers > Email**, desative o cadastro público (*Enable sign ups*).
-3. O seed da migration já cria o usuário `william_mirog@hotmail.com` e o trigger `handle_new_user` gera o perfil `admin`.
-4. Em produção já existente, rode `supabase/scripts/update_admin_credentials.sql` no SQL Editor para trocar o e-mail/senha.
+1. Sign-ups **desabilitados**.
+2. Confirmação de e-mail recomendada.
+3. Senha forte (mín. 12 caracteres) — alinhar no Dashboard com o `config.toml` local.
+4. Captcha (hCaptcha/Turnstile) recomendado no Dashboard Auth.
+5. Rotacione a senha se ela já tiver aparecido em commits antigos do repositório.
+6. Promoção a admin **somente** via `bootstrap_admin.sql` (ou SQL Editor com flag controlada).
 
-Não existe tela de cadastro para clientes.
+Não existe tela de cadastro para clientes. O trigger `handle_new_user` cria perfil com `role = 'none'` (sem privilégios).
 
-### 3. Storage
+### Storage
 
-Os buckets `product-images` e `store-assets` são criados pela migration. Leitura pública, escrita apenas para administradores.
+Buckets `product-images` e `store-assets`: leitura pública, escrita apenas admin. JPG/PNG/WEBP, 5 MB.
 
-Formatos aceitos: JPG, JPEG, PNG e WEBP. Limite: 5 MB.
+### WhatsApp
 
-### 4. WhatsApp
-
-No painel, acesse **Configurações** e informe o número com DDD. A mensagem padrão também é editável. Sem esse número, o botão de WhatsApp permanece oculto.
+Configure o número no painel. Sem número, os botões de WhatsApp ficam ocultos/desabilitados.
 
 ## Scripts
 
@@ -136,22 +127,27 @@ npm run preview  # pré-visualizar o build
 
 1. Importe o repositório na Vercel.
 2. Framework: Vite.
-3. Configure as variáveis:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-4. O arquivo `vercel.json` já redireciona todas as rotas para `index.html`, para o React Router funcionar após refresh em `/produtos`, `/produto/:id` e `/admin`.
+3. Variáveis: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+4. `vercel.json` faz rewrite SPA e envia security headers (CSP, HSTS, etc.). Após o deploy, valide com `curl -I https://seu-dominio`.
 
 ## Segurança
 
-- RLS ativo em todas as tabelas de negócio
-- Catálogo público lê apenas produtos `active`
-- Vendas, estoque e configurações de escrita: somente `profiles.role = 'admin'`
-- Baixa de estoque feita por função SQL com lock (`register_sale` / `adjust_stock`)
-- Credenciais administrativas não vão para o frontend
-- `.env` está no `.gitignore`
+Documentação operacional:
+
+- [docs/security-runbook.md](docs/security-runbook.md) — criar admin, rotacionar senha, checklist
+- [docs/security-smoke-tests.md](docs/security-smoke-tests.md) — testes manuais API
+- [docs/production-checklist.md](docs/production-checklist.md) — go-live
+
+Resumo:
+
+- RLS em todas as tabelas de negócio
+- Catálogo público sem `quantity` exata (usa `in_stock`)
+- Vendas/estoque mutáveis só via RPCs (`register_sale` / `adjust_stock`)
+- Preço da venda calculado no servidor
+- Roles: `none` | `admin` — escalação bloqueada na API
+- Sem Service Role no frontend
+- Headers de segurança no deploy Vercel
 
 ## Identidade visual
 
-A interface segue a logo cromada da WM Imports: fundo preto, prata/platina, tipografia geométrica e estética de moda contemporânea. A logo original está em `public/logo.png` e `src/assets/logo.png`.
+Fundo preto, prata/platina, tipografia Outfit/Syne. Logo em `public/logo.png` e `src/assets/logo.png`.
