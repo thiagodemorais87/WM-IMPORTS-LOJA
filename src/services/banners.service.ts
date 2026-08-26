@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { sanitizeBannerLink } from '@/lib/safe-url'
 import type { Banner } from '@/types'
 
 /** Banner padrão = o mais antigo (seed); empate por menor display_order. */
@@ -44,7 +45,14 @@ export async function listAdminBanners() {
 }
 
 export async function createBanner(payload: Partial<Banner>) {
-  const { data, error } = await supabase.from('banners').insert(payload).select('*').single()
+  const { data, error } = await supabase
+    .from('banners')
+    .insert({
+      ...payload,
+      button_link: sanitizeBannerLink(payload.button_link ?? null),
+    })
+    .select('*')
+    .single()
   if (error) throw error
   return data as Banner
 }
@@ -57,7 +65,12 @@ export async function updateBanner(id: string, payload: Partial<Banner>, all?: B
     }
   }
 
-  const { data, error } = await supabase.from('banners').update(payload).eq('id', id).select('*').single()
+  const nextPayload = { ...payload }
+  if ('button_link' in payload) {
+    nextPayload.button_link = sanitizeBannerLink(payload.button_link ?? null)
+  }
+
+  const { data, error } = await supabase.from('banners').update(nextPayload).eq('id', id).select('*').single()
   if (error) throw error
   return data as Banner
 }

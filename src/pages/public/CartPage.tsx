@@ -17,7 +17,10 @@ export function CartPage() {
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <Seo title="Carrinho" />
       <h1 className="font-display text-4xl">Carrinho</h1>
-      <p className="mt-2 text-sm text-metal-400">A solicitação é enviada pelo WhatsApp. Não há pagamento online.</p>
+      <p className="mt-2 text-sm text-metal-400">
+        Isto é apenas uma intenção de compra. Não há pagamento online. Preço e disponibilidade finais são confirmados
+        pelo WhatsApp com a loja.
+      </p>
 
       {count === 0 ? (
         <div className="mt-10">
@@ -56,9 +59,13 @@ export function CartPage() {
           ))}
 
           <div className="flex items-center justify-between border-t border-white/10 pt-6">
-            <span className="text-metal-400">Estimativa</span>
+            <span className="text-metal-400">Estimativa (não é cobrança)</span>
             <span className="text-xl text-white">{formatCurrency(total)}</span>
           </div>
+          <p className="text-xs text-metal-500">
+            O valor exibido pode ser ajustado no atendimento. A mensagem ao WhatsApp não envia preço — só a lista de
+            itens para confirmação.
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             {href ? (
               <a

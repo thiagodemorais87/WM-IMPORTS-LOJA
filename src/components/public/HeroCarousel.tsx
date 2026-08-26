@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { ShinyText } from '@/components/bits/Motion'
 import { useSettings } from '@/contexts/SettingsContext'
 import { buildWhatsAppLink } from '@/lib/whatsapp'
+import { isSafeBannerLink } from '@/lib/safe-url'
 import logo from '@/assets/logo.png'
 
 export function HeroCarousel({ banners }: { banners: Banner[] }) {
@@ -41,7 +42,13 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
         <div className="flex">
           {banners.map((banner, bannerIndex) => {
             const isWhatsapp = banner.button_link === 'whatsapp'
-            const href = isWhatsapp ? wa : banner.button_link || '/produtos'
+            const rawLink = banner.button_link || '/produtos'
+            const href = isWhatsapp
+              ? wa
+              : isSafeBannerLink(rawLink)
+                ? rawLink
+                : '/produtos'
+            const isExternal = Boolean(href && /^https?:\/\//i.test(href))
             const isActive = bannerIndex === index
             const heroImage = banner.image_url || logo
             return (
@@ -71,9 +78,9 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
                       <p className="max-w-xl text-sm text-metal-300 sm:text-lg">{banner.subtitle}</p>
                     ) : null}
                     {href ? (
-                      isWhatsapp ? (
+                      isWhatsapp || isExternal ? (
                         <a href={href} target="_blank" rel="noreferrer">
-                          <Button size="lg">{banner.button_text || 'Falar no WhatsApp'}</Button>
+                          <Button size="lg">{banner.button_text || (isWhatsapp ? 'Falar no WhatsApp' : 'Ver produtos')}</Button>
                         </a>
                       ) : (
                         <Link to={href}>

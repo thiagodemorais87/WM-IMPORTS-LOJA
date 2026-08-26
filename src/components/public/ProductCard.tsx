@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom'
 import type { ProductWithRelations } from '@/types'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, effectivePrice } from '@/lib/format'
-import { availableSizes, productHasStock } from '@/lib/stock'
+import { availableSizes, productHasStock, variantIsInStock } from '@/lib/stock'
 
 export function ProductCard({ product }: { product: ProductWithRelations }) {
   const image = product.images.find((item) => item.is_primary) ?? product.images[0]
   const inStock = productHasStock(product.variants)
   const price = effectivePrice(product.price, product.promotional_price)
-  const sizes = availableSizes(product.variants).filter((variant) => variant.quantity > 0)
+  const sizes = availableSizes(product.variants).filter((variant) => variantIsInStock(variant))
 
   return (
     <Link

@@ -11,7 +11,7 @@ import { PageLoader } from '@/components/ui/Spinner'
 import { getPublicProduct } from '@/services/products.service'
 import { useCart } from '@/contexts/CartContext'
 import { useSettings } from '@/contexts/SettingsContext'
-import { availableSizes, productHasStock } from '@/lib/stock'
+import { availableSizes, productHasStock, publicMaxQuantity, variantIsInStock } from '@/lib/stock'
 import { effectivePrice, formatCurrency } from '@/lib/format'
 import { buildWhatsAppLink, productInterestMessage } from '@/lib/whatsapp'
 import type { ProductWithRelations } from '@/types'
@@ -32,7 +32,8 @@ export function ProductDetailPage() {
     getPublicProduct(id)
       .then((data) => {
         setProduct(data)
-        const first = data?.variants.find((variant) => variant.active && variant.quantity > 0) ?? data?.variants[0]
+        const first =
+          data?.variants.find((variant) => variantIsInStock(variant)) ?? data?.variants[0]
         setVariantId(first?.id ?? '')
         setQuantity(1)
       })
@@ -42,7 +43,7 @@ export function ProductDetailPage() {
 
   const variant = product?.variants.find((item) => item.id === variantId)
   const sizes = product ? availableSizes(product.variants) : []
-  const maxQty = variant?.quantity ?? 0
+  const maxQty = variant ? publicMaxQuantity(variant) : 0
   const inStock = product ? productHasStock(product.variants) : false
   const price = product ? effectivePrice(product.price, product.promotional_price) : 0
 
@@ -85,7 +86,7 @@ export function ProductDetailPage() {
             <p className="mb-2 text-sm text-metal-400">Tamanho</p>
             <div className="flex flex-wrap gap-2">
               {sizes.map((item) => {
-                const soldOut = item.quantity <= 0
+                const soldOut = !variantIsInStock(item)
                 return (
                   <button
                     key={item.id}
@@ -111,7 +112,7 @@ export function ProductDetailPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-metal-400" htmlFor="qty">Quantidade</label>
+            <label className="mb-2 block text-sm text-metal-400" htmlFor="qty">Quantidade desejada</label>
             <Select
               id="qty"
               className="max-w-32"
@@ -125,7 +126,11 @@ export function ProductDetailPage() {
                 </option>
               ))}
             </Select>
-            {!maxQty ? <p className="mt-2 text-sm text-red-300">Este tamanho está esgotado.</p> : null}
+            {!maxQty ? (
+              <p className="mt-2 text-sm text-red-300">Este tamanho está esgotado.</p>
+            ) : (
+              <p className="mt-2 text-xs text-metal-500">A disponibilidade final é confirmada no WhatsApp.</p>
+            )}
           </div>
         </div>
 
@@ -142,7 +147,7 @@ export function ProductDetailPage() {
                 quantity,
                 unitPrice: price,
                 imageUrl: image?.url ?? null,
-                maxQuantity: variant.quantity,
+                maxQuantity: publicMaxQuantity(variant),
               })
               toast.success('Produto adicionado ao carrinho.')
             }}

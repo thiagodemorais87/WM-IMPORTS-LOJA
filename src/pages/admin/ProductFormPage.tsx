@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { PageLoader } from '@/components/ui/Spinner'
 import {
-  addProductImage,
+  addProductImages,
   createProduct,
   deleteProductImage,
   getAdminProduct,
@@ -17,6 +17,7 @@ import {
 import { listAdminCategories } from '@/services/categories.service'
 import { makeObjectPath, removeImage, uploadImage, validateImageFile } from '@/services/storage.service'
 import { compressImageFile } from '@/lib/image-compress'
+import { mapPool } from '@/lib/async'
 import { MAX_PRODUCT_IMAGES } from '@/constants'
 import type { Category, ProductImage, ProductStatus } from '@/types'
 
@@ -35,6 +36,7 @@ export function ProductFormPage() {
   const isEdit = Boolean(id)
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+  const [saveLabel, setSaveLabel] = useState('Salvar produto')
   const [categories, setCategories] = useState<Category[]>([])
   const [images, setImages] = useState<ProductImage[]>([])
   const [previews, setPreviews] = useState<{ file: File; url: string }[]>([])
@@ -104,6 +106,7 @@ export function ProductFormPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setSaving(true)
+    setSaveLabel('Salvando...')
     try {
       const payload = {
         name: form.name,
@@ -127,23 +130,28 @@ export function ProductFormPage() {
         })),
       )
 
-      let nextOrder = images.length
-      let primaryNeeded = images.length === 0
-      for (const preview of previews) {
-        const compressed = await compressImageFile(preview.file)
-        validateImageFile(compressed)
-        const path = makeObjectPath(product.id, compressed)
-        const uploaded = await uploadImage('product-images', path, compressed)
-        nextOrder += 1
-        await addProductImage({
-          product_id: product.id,
-          url: uploaded.url,
-          storage_path: uploaded.path,
-          alt: form.name,
-          is_primary: primaryNeeded,
-          display_order: nextOrder,
+      if (previews.length) {
+        setSaveLabel('Enviando imagens...')
+        const compressedFiles = await Promise.all(previews.map((preview) => compressImageFile(preview.file)))
+        compressedFiles.forEach(validateImageFile)
+
+        const uploaded = await mapPool(compressedFiles, 3, async (file) => {
+          const path = makeObjectPath(product.id, file)
+          return uploadImage('product-images', path, file)
         })
-        primaryNeeded = false
+
+        const startOrder = images.length
+        const primaryNeeded = images.length === 0
+        await addProductImages(
+          uploaded.map((item, index) => ({
+            product_id: product.id,
+            url: item.url,
+            storage_path: item.path,
+            alt: form.name,
+            is_primary: primaryNeeded && index === 0,
+            display_order: startOrder + index + 1,
+          })),
+        )
       }
 
       toast.success(isEdit ? 'Produto atualizado com sucesso.' : 'Produto cadastrado com sucesso.')
@@ -152,6 +160,7 @@ export function ProductFormPage() {
       toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o produto.')
     } finally {
       setSaving(false)
+      setSaveLabel('Salvar produto')
     }
   }
 
@@ -387,7 +396,7 @@ export function ProductFormPage() {
       </section>
 
       <Button type="submit" disabled={saving}>
-        {saving ? 'Salvando...' : 'Salvar produto'}
+        {saving ? saveLabel : 'Salvar produto'}
       </Button>
     </form>
   )

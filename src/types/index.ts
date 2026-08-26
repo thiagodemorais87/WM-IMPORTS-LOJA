@@ -1,4 +1,4 @@
-export type UserRole = 'admin'
+export type UserRole = 'admin' | 'none'
 
 export type ProductStatus = 'draft' | 'active' | 'archived'
 
@@ -62,7 +62,10 @@ export interface ProductVariant {
   product_id: string
   size_label: string
   sku: string | null
+  /** Quantidade exata — disponível só para admin autenticado */
   quantity: number
+  /** Disponibilidade pública (anon não recebe quantity) */
+  in_stock?: boolean
   active: boolean
   display_order: number
   created_at: string
