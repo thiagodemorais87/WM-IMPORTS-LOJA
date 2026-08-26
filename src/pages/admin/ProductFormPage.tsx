@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { ProductImageGallery, type GalleryItem } from '@/components/admin/ProductImageGallery'
 import { Seo } from '@/components/ui/Seo'
 import { Button } from '@/components/ui/Button'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
@@ -16,7 +17,7 @@ import {
 } from '@/services/products.service'
 import { listAdminCategories } from '@/services/categories.service'
 import { makeObjectPath, removeImage, uploadImage } from '@/services/storage.service'
-import type { Category, ProductImage, ProductStatus } from '@/types'
+import type { Category, ProductStatus } from '@/types'
 
 interface VariantDraft {
   id?: string
@@ -34,10 +35,9 @@ export function ProductFormPage() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
-  const [images, setImages] = useState<ProductImage[]>([])
-  const [previews, setPreviews] = useState<{ file: File; url: string }[]>([])
-  const previewsRef = useRef(previews)
-  previewsRef.current = previews
+  const [gallery, setGallery] = useState<GalleryItem[]>([])
+  const galleryRef = useRef(gallery)
+  galleryRef.current = gallery
   const [variants, setVariants] = useState<VariantDraft[]>([
     { size_label: 'M', sku: '', quantity: 0, active: true, display_order: 1 },
   ])
@@ -87,14 +87,24 @@ export function ProductFormPage() {
               }))
             : [{ size_label: 'M', sku: '', quantity: 0, active: true, display_order: 1 }],
         )
-        setImages(product.images)
+        setGallery(
+          product.images.map((image) => ({
+            kind: 'saved',
+            id: image.id,
+            url: image.url,
+            storage_path: image.storage_path,
+            is_primary: image.is_primary,
+          })),
+        )
       })
       .finally(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
     return () => {
-      previewsRef.current.forEach((preview) => URL.revokeObjectURL(preview.url))
+      galleryRef.current.forEach((item) => {
+        if (item.kind === 'preview') URL.revokeObjectURL(item.url)
+      })
     }
   }, [])
 
@@ -120,18 +130,28 @@ export function ProductFormPage() {
         variants.map((variant, index) => ({ ...variant, display_order: index + 1 })),
       )
 
-      for (const preview of previews) {
-        const path = makeObjectPath(product.id, preview.file)
-        const uploaded = await uploadImage('product-images', path, preview.file)
-        await addProductImage({
-          product_id: product.id,
-          url: uploaded.url,
-          storage_path: uploaded.path,
-          alt: form.name,
-          is_primary: images.length === 0,
-          display_order: images.length + 1,
-        })
+      const savedUpdates: { id: string; display_order: number; is_primary: boolean }[] = []
+      for (let index = 0; index < gallery.length; index += 1) {
+        const item = gallery[index]
+        if (!item) continue
+        const display_order = index + 1
+        const is_primary = index === 0
+        if (item.kind === 'preview') {
+          const path = makeObjectPath(product.id, item.file)
+          const uploaded = await uploadImage('product-images', path, item.file)
+          await addProductImage({
+            product_id: product.id,
+            url: uploaded.url,
+            storage_path: uploaded.path,
+            alt: form.name,
+            is_primary,
+            display_order,
+          })
+        } else {
+          savedUpdates.push({ id: item.id, display_order, is_primary })
+        }
       }
+      if (savedUpdates.length) await updateImageOrder(savedUpdates)
 
       toast.success(isEdit ? 'Produto atualizado com sucesso.' : 'Produto cadastrado com sucesso.')
       navigate('/admin/produtos')
@@ -207,90 +227,30 @@ export function ProductFormPage() {
         </div>
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-white/10 p-5">
-        <h2 className="font-display text-lg">Imagens</h2>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          onChange={(event) => {
-            const files = [...(event.target.files ?? [])]
-            setPreviews((current) => [
-              ...current,
-              ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
-            ])
-            event.target.value = ''
-          }}
-        />
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-          {images.map((image, index) => (
-            <div key={image.id} className="relative">
-              <img src={image.url} alt="" decoding="async" loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
-              <div className="mt-1 flex gap-1 text-[10px]">
-                <button
-                  type="button"
-                  className="text-metal-300"
-                  onClick={async () => {
-                    const next = images.map((item, itemIndex) => ({
-                      id: item.id,
-                      display_order: itemIndex,
-                      is_primary: item.id === image.id,
-                    }))
-                    await updateImageOrder(next)
-                    setImages((current) => current.map((item) => ({ ...item, is_primary: item.id === image.id })))
-                  }}
-                >
-                  {image.is_primary ? 'Principal' : 'Tornar principal'}
-                </button>
-                <button
-                  type="button"
-                  className="text-red-300"
-                  onClick={async () => {
-                    await deleteProductImage(image.id)
-                    await removeImage('product-images', image.storage_path)
-                    setImages((current) => current.filter((item) => item.id !== image.id))
-                  }}
-                >
-                  Excluir
-                </button>
-                {index > 0 ? (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const next = [...images]
-                      ;[next[index - 1], next[index]] = [next[index], next[index - 1]]
-                      const payload = next.map((item, itemIndex) => ({
-                        id: item.id,
-                        display_order: itemIndex,
-                        is_primary: item.is_primary,
-                      }))
-                      await updateImageOrder(payload)
-                      setImages(next)
-                    }}
-                  >
-                    ←
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          ))}
-          {previews.map((preview, previewIndex) => (
-            <div key={preview.url} className="relative">
-              <img src={preview.url} alt="Pré-visualização" decoding="async" className="aspect-square w-full rounded-xl object-cover" />
-              <button
-                type="button"
-                className="mt-1 text-[10px] text-red-300"
-                onClick={() => {
-                  URL.revokeObjectURL(preview.url)
-                  setPreviews((current) => current.filter((_, index) => index !== previewIndex))
-                }}
-              >
-                Remover
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ProductImageGallery
+        items={gallery}
+        onChange={setGallery}
+        onAddFiles={(files) => {
+          setGallery((current) => [
+            ...current,
+            ...files.map((file) => ({ kind: 'preview' as const, file, url: URL.createObjectURL(file) })),
+          ])
+        }}
+        onRemove={async (item, index) => {
+          if (item.kind === 'preview') {
+            URL.revokeObjectURL(item.url)
+            setGallery((current) => current.filter((_, itemIndex) => itemIndex !== index))
+            return
+          }
+          try {
+            await deleteProductImage(item.id)
+            await removeImage('product-images', item.storage_path)
+            setGallery((current) => current.filter((entry) => entry.kind !== 'saved' || entry.id !== item.id))
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Não foi possível excluir a imagem.')
+          }
+        }}
+      />
 
       <section className="space-y-4 rounded-2xl border border-white/10 p-5">
         <div className="flex items-center justify-between">
