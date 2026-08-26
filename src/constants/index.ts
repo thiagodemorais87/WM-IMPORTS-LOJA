@@ -33,6 +33,9 @@ export const BANNER_TYPE_LABELS = {
 
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+export const MAX_PRODUCT_IMAGES = 8
+export const PRODUCT_IMAGE_MAX_EDGE = 1600
+export const PRODUCT_IMAGE_QUALITY = 0.8
 
 export const DEFAULT_FILTERS = {
   search: '',

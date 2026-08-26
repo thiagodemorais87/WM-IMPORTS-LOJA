@@ -48,7 +48,7 @@ export function ProductsListPage() {
   const filtered = useMemo(() => {
     if (!debouncedSearch) return products
     return products.filter((product) =>
-      [product.name, product.sku, product.category?.name]
+      [product.name, product.category?.name]
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(debouncedSearch)),
     )
@@ -68,7 +68,7 @@ export function ProductsListPage() {
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
-        <Input placeholder="Pesquisar nome, SKU ou categoria" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <Input placeholder="Pesquisar nome ou categoria" value={search} onChange={(event) => setSearch(event.target.value)} />
         <Select value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="all">Todos os status</option>
           <option value="active">Ativos</option>

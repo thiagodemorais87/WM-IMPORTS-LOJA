@@ -28,3 +28,6 @@ export function effectivePrice(price: number, promotionalPrice: number | null) {
 export function digitsOnly(value: string) {
   return value.replace(/\D/g, '')
 }
+
+/** Quantidade máxima pedida no carrinho quando o estoque exato não é público */
+export const PUBLIC_MAX_REQUEST_QTY = 10

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { PageLoader } from '@/components/ui/Spinner'
 import {
-  addProductImage,
+  addProductImages,
   createProduct,
   deleteProductImage,
   getAdminProduct,
@@ -16,7 +16,10 @@ import {
   upsertVariants,
 } from '@/services/products.service'
 import { listAdminCategories } from '@/services/categories.service'
-import { makeObjectPath, removeImage, uploadImage } from '@/services/storage.service'
+import { makeObjectPath, removeImage, uploadImage, validateImageFile } from '@/services/storage.service'
+import { compressImageFile } from '@/lib/image-compress'
+import { mapPool } from '@/lib/async'
+import { MAX_PRODUCT_IMAGES } from '@/constants'
 import type { Category, ProductStatus } from '@/types'
 
 interface VariantDraft {
@@ -34,6 +37,7 @@ export function ProductFormPage() {
   const isEdit = Boolean(id)
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+  const [saveLabel, setSaveLabel] = useState('Salvar produto')
   const [categories, setCategories] = useState<Category[]>([])
   const [gallery, setGallery] = useState<GalleryItem[]>([])
   const galleryRef = useRef(gallery)
@@ -46,7 +50,6 @@ export function ProductFormPage() {
     category_id: '',
     description: '',
     additional_info: '',
-    sku: '',
     price: '',
     promotional_price: '',
     status: 'draft' as ProductStatus,
@@ -68,7 +71,6 @@ export function ProductFormPage() {
           category_id: product.category_id ?? '',
           description: product.description ?? '',
           additional_info: product.additional_info ?? '',
-          sku: product.sku ?? '',
           price: String(product.price),
           promotional_price: product.promotional_price == null ? '' : String(product.promotional_price),
           status: product.status,
@@ -111,13 +113,14 @@ export function ProductFormPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setSaving(true)
+    setSaveLabel('Salvando...')
     try {
       const payload = {
         name: form.name,
         category_id: form.category_id || null,
         description: form.description,
         additional_info: form.additional_info,
-        sku: form.sku,
+        sku: '',
         price: Number(form.price),
         promotional_price: form.promotional_price ? Number(form.promotional_price) : null,
         status: form.status,
@@ -127,29 +130,47 @@ export function ProductFormPage() {
       const product = isEdit && id ? await updateProduct(id, payload) : await createProduct(payload)
       await upsertVariants(
         product.id,
-        variants.map((variant, index) => ({ ...variant, display_order: index + 1 })),
+        variants.map((variant, index) => ({
+          ...variant,
+          sku: variant.sku || '',
+          display_order: index + 1,
+        })),
       )
 
       const savedUpdates: { id: string; display_order: number; is_primary: boolean }[] = []
-      for (let index = 0; index < gallery.length; index += 1) {
-        const item = gallery[index]
-        if (!item) continue
-        const display_order = index + 1
-        const is_primary = index === 0
+      const previews: { index: number; file: File }[] = []
+      gallery.forEach((item, index) => {
         if (item.kind === 'preview') {
-          const path = makeObjectPath(product.id, item.file)
-          const uploaded = await uploadImage('product-images', path, item.file)
-          await addProductImage({
-            product_id: product.id,
-            url: uploaded.url,
-            storage_path: uploaded.path,
-            alt: form.name,
-            is_primary,
-            display_order,
-          })
+          previews.push({ index, file: item.file })
         } else {
-          savedUpdates.push({ id: item.id, display_order, is_primary })
+          savedUpdates.push({ id: item.id, display_order: index + 1, is_primary: index === 0 })
         }
+      })
+
+      if (previews.length) {
+        setSaveLabel('Enviando imagens...')
+        const compressedFiles = await Promise.all(previews.map((preview) => compressImageFile(preview.file)))
+        compressedFiles.forEach(validateImageFile)
+
+        const uploaded = await mapPool(compressedFiles, 3, async (file) => {
+          const path = makeObjectPath(product.id, file)
+          return uploadImage('product-images', path, file)
+        })
+
+        await addProductImages(
+          uploaded.map((item, uploadIndex) => {
+            const preview = previews[uploadIndex]
+            const orderIndex = preview?.index ?? uploadIndex
+            return {
+              product_id: product.id,
+              url: item.url,
+              storage_path: item.path,
+              alt: form.name,
+              is_primary: orderIndex === 0,
+              display_order: orderIndex + 1,
+            }
+          }),
+        )
       }
       if (savedUpdates.length) await updateImageOrder(savedUpdates)
 
@@ -159,6 +180,7 @@ export function ProductFormPage() {
       toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o produto.')
     } finally {
       setSaving(false)
+      setSaveLabel('Salvar produto')
     }
   }
 
@@ -201,13 +223,6 @@ export function ProductFormPage() {
             <Input type="number" min="0" step="0.01" value={form.promotional_price} onChange={(event) => setForm((prev) => ({ ...prev, promotional_price: event.target.value }))} />
           </Field>
         </div>
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-white/10 p-5">
-        <h2 className="font-display text-lg">Identificação</h2>
-        <Field label="SKU">
-          <Input value={form.sku} onChange={(event) => setForm((prev) => ({ ...prev, sku: event.target.value }))} />
-        </Field>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Status">
             <Select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ProductStatus }))}>
@@ -229,12 +244,30 @@ export function ProductFormPage() {
 
       <ProductImageGallery
         items={gallery}
+        maxItems={MAX_PRODUCT_IMAGES}
         onChange={setGallery}
         onAddFiles={(files) => {
-          setGallery((current) => [
-            ...current,
-            ...files.map((file) => ({ kind: 'preview' as const, file, url: URL.createObjectURL(file) })),
-          ])
+          setGallery((current) => {
+            const available = MAX_PRODUCT_IMAGES - current.length
+            if (available <= 0) {
+              toast.error(`Limite de ${MAX_PRODUCT_IMAGES} fotos por produto.`)
+              return current
+            }
+            const accepted = files.slice(0, available)
+            if (files.length > available) {
+              toast.message(`Só foram adicionadas ${accepted.length} foto(s). Limite: ${MAX_PRODUCT_IMAGES}.`)
+            }
+            try {
+              accepted.forEach(validateImageFile)
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : 'Arquivo de imagem inválido.')
+              return current
+            }
+            return [
+              ...current,
+              ...accepted.map((file) => ({ kind: 'preview' as const, file, url: URL.createObjectURL(file) })),
+            ]
+          })
         }}
         onRemove={async (item, index) => {
           if (item.kind === 'preview') {
@@ -274,7 +307,7 @@ export function ProductFormPage() {
         </p>
         <div className="space-y-3">
           {variants.map((variant, index) => (
-            <div key={variant.id ?? `new-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-5">
+            <div key={variant.id ?? `new-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-4">
               <Input
                 placeholder="Tamanho (P, M, 40, Único)"
                 value={variant.size_label}
@@ -282,13 +315,6 @@ export function ProductFormPage() {
                   setVariants((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, size_label: event.target.value } : item)))
                 }
                 required
-              />
-              <Input
-                placeholder="SKU"
-                value={variant.sku}
-                onChange={(event) =>
-                  setVariants((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, sku: event.target.value } : item)))
-                }
               />
               <Input
                 type="number"
@@ -322,7 +348,7 @@ export function ProductFormPage() {
       </section>
 
       <Button type="submit" disabled={saving}>
-        {saving ? 'Salvando...' : 'Salvar produto'}
+        {saving ? saveLabel : 'Salvar produto'}
       </Button>
     </form>
   )

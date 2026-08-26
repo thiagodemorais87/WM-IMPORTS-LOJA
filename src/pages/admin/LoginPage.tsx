@@ -5,6 +5,7 @@ import { Seo } from '@/components/ui/Seo'
 import { Button } from '@/components/ui/Button'
 import { Field, Input } from '@/components/ui/Field'
 import { useAuth } from '@/contexts/AuthContext'
+import { safeAdminRedirect } from '@/lib/safe-url'
 import logo from '@/assets/logo.png'
 
 export function LoginPage() {
@@ -14,7 +15,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const from = (location.state as { from?: string } | null)?.from ?? '/admin'
+  const from = safeAdminRedirect((location.state as { from?: string } | null)?.from)
 
   if (!loading && session && isAdmin) {
     return <Navigate to="/admin" replace />
@@ -41,6 +42,11 @@ export function LoginPage() {
         <img src={logo} alt="WM Imports" className="mx-auto h-16" />
         <h1 className="mt-6 text-center font-display text-2xl">Painel administrativo</h1>
         <p className="mt-2 text-center text-sm text-metal-400">Acesso exclusivo do proprietário da loja.</p>
+        {!loading && session && !isAdmin ? (
+          <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-sm text-amber-200">
+            Esta conta não tem permissão de administrador. Use o usuário promovido via bootstrap_admin.sql.
+          </p>
+        ) : null}
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           <Field label="E-mail">
             <Input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />

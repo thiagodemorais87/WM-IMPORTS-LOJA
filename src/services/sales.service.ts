@@ -4,7 +4,9 @@ import type { PaymentMethod, SaleWithItems } from '@/types'
 export interface SaleItemInput {
   variant_id: string
   quantity: number
-  unit_price: number
+  /** Opcional: preço negociado; exige discount_reason */
+  manual_unit_price?: number
+  discount_reason?: string
 }
 
 export async function registerSale(payload: {
@@ -19,7 +21,16 @@ export async function registerSale(payload: {
     p_payment_method: payload.payment_method,
     p_notes: payload.notes || null,
     p_sold_at: payload.sold_at,
-    p_items: payload.items,
+    p_items: payload.items.map((item) => ({
+      variant_id: item.variant_id,
+      quantity: item.quantity,
+      ...(item.manual_unit_price != null
+        ? {
+            manual_unit_price: item.manual_unit_price,
+            discount_reason: item.discount_reason,
+          }
+        : {}),
+    })),
   })
   if (error) throw error
   return data as string

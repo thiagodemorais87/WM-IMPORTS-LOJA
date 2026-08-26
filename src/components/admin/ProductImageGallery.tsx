@@ -20,11 +20,13 @@ function itemKey(item: GalleryItem) {
 
 export function ProductImageGallery({
   items,
+  maxItems,
   onChange,
   onRemove,
   onAddFiles,
 }: {
   items: GalleryItem[]
+  maxItems: number
   onChange: (items: GalleryItem[]) => void
   onRemove: (item: GalleryItem, index: number) => void | Promise<void>
   onAddFiles: (files: File[]) => void
@@ -33,6 +35,7 @@ export function ProductImageGallery({
   const dragIndexRef = useRef<number | null>(null)
   const itemsRef = useRef(items)
   itemsRef.current = items
+  const atLimit = items.length >= maxItems
 
   function handleDragStart(index: number, event: DragEvent<HTMLDivElement>) {
     dragIndexRef.current = index
@@ -62,12 +65,19 @@ export function ProductImageGallery({
     <section className="space-y-4 rounded-2xl border border-white/10 p-5">
       <div>
         <h2 className="font-display text-lg">Imagens</h2>
+        <p className="mt-1 text-sm text-metal-400">
+          Pode adicionar até {maxItems} fotos (JPEG/PNG/WebP). As imagens são comprimidas automaticamente antes do envio.
+        </p>
         <p className="mt-1 text-xs text-metal-500">Arraste para reordenar. A primeira imagem é a capa da loja.</p>
+        <p className="mt-1 text-xs text-metal-500">
+          {items.length}/{maxItems} fotos
+        </p>
       </div>
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
         multiple
+        disabled={atLimit}
         onChange={(event) => {
           const files = [...(event.target.files ?? [])]
           if (files.length) onAddFiles(files)

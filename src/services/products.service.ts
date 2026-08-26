@@ -5,7 +5,7 @@ import { slugify } from '@/lib/slug'
 function mapProduct(row: Partial<Product> & {
   category?: Partial<Category> | null
   product_images?: ProductImage[]
-  product_variants?: ProductVariant[]
+  product_variants?: Array<Partial<ProductVariant> & { in_stock?: boolean }>
 }): ProductWithRelations {
   return {
     id: row.id!,
@@ -24,7 +24,23 @@ function mapProduct(row: Partial<Product> & {
     updated_at: row.updated_at ?? '',
     category: (row.category as Category | null) ?? null,
     images: (row.product_images ?? []).sort((a, b) => a.display_order - b.display_order),
-    variants: (row.product_variants ?? []).sort((a, b) => a.display_order - b.display_order),
+    variants: (row.product_variants ?? [])
+      .map((variant) => ({
+        id: variant.id!,
+        product_id: variant.product_id ?? row.id!,
+        size_label: variant.size_label ?? '',
+        sku: variant.sku ?? null,
+        quantity: Number(variant.quantity ?? 0),
+        in_stock:
+          typeof variant.in_stock === 'boolean'
+            ? variant.in_stock
+            : Number(variant.quantity ?? 0) > 0,
+        active: Boolean(variant.active ?? true),
+        display_order: Number(variant.display_order ?? 0),
+        created_at: variant.created_at ?? '',
+        updated_at: variant.updated_at ?? '',
+      }))
+      .sort((a, b) => a.display_order - b.display_order),
   }
 }
 
@@ -36,12 +52,12 @@ const PRODUCT_SELECT = `
   product_variants(*)
 `
 
-/** Cards e catálogo público — campos necessários para ProductCard + filtros */
+/** Cards e catálogo público — sem quantity exata (apenas in_stock) */
 const PRODUCT_CARD_SELECT = `
-  id, category_id, name, slug, sku, price, promotional_price, status, featured, is_new, created_at, updated_at,
+  id, category_id, name, slug, sku, description, additional_info, price, promotional_price, status, featured, is_new, created_at, updated_at,
   category:categories(id, name, slug),
   product_images(id, url, alt, is_primary, display_order),
-  product_variants(id, size_label, quantity, active, display_order)
+  product_variants(id, size_label, active, display_order, in_stock)
 `
 
 /** Listagens admin / selects de venda e estoque — sem imagens */
@@ -74,7 +90,7 @@ export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) 
   if (filters.search) {
     const term = filters.search.toLowerCase()
     products = products.filter((product) =>
-      [product.name, product.sku, product.category?.name]
+      [product.name, product.category?.name]
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(term)),
     )
@@ -87,11 +103,15 @@ export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) 
   }
 
   if (filters.availability === 'in_stock') {
-    products = products.filter((product) => product.variants.some((variant) => variant.quantity > 0))
+    products = products.filter((product) =>
+      product.variants.some((variant) => variant.active && (variant.in_stock ?? variant.quantity > 0)),
+    )
   }
 
   if (filters.availability === 'out_of_stock') {
-    products = products.filter((product) => product.variants.every((variant) => variant.quantity <= 0))
+    products = products.filter((product) =>
+      product.variants.every((variant) => !(variant.in_stock ?? variant.quantity > 0)),
+    )
   }
 
   if (filters.minPrice) {
@@ -135,7 +155,7 @@ export async function getRecentProducts() {
 export async function getPublicProduct(idOrSlug: string) {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrSlug)
 
-  let query = supabase.from('products').select(PRODUCT_SELECT).eq('status', 'active')
+  let query = supabase.from('products').select(PRODUCT_CARD_SELECT).eq('status', 'active')
   query = isUuid ? query.eq('id', idOrSlug) : query.eq('slug', idOrSlug)
 
   const { data, error } = await query.maybeSingle()
@@ -175,7 +195,7 @@ export interface ProductPayload {
   is_new: boolean
 }
 
-export async function createProduct(payload: ProductPayload) {
+export async function createProduct(payload: ProductPayload): Promise<{ id: string }> {
   const slug = await uniqueSlug(payload.name)
   const { data, error } = await supabase
     .from('products')
@@ -185,14 +205,14 @@ export async function createProduct(payload: ProductPayload) {
       promotional_price: payload.promotional_price,
       slug,
     })
-    .select(PRODUCT_SELECT)
+    .select('id')
     .single()
 
   if (error) throw error
-  return mapProduct(data as never)
+  return data
 }
 
-export async function updateProduct(id: string, payload: ProductPayload) {
+export async function updateProduct(id: string, payload: ProductPayload): Promise<{ id: string }> {
   const { data, error } = await supabase
     .from('products')
     .update({
@@ -200,11 +220,11 @@ export async function updateProduct(id: string, payload: ProductPayload) {
       sku: payload.sku || null,
     })
     .eq('id', id)
-    .select(PRODUCT_SELECT)
+    .select('id')
     .single()
 
   if (error) throw error
-  return mapProduct(data as never)
+  return data
 }
 
 export async function archiveProduct(id: string) {
@@ -214,7 +234,12 @@ export async function archiveProduct(id: string) {
 
 export async function deleteProduct(id: string) {
   const { error } = await supabase.from('products').delete().eq('id', id)
-  if (error) throw error
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('Produto já teve vendas ou movimentos de estoque. Prefira Arquivar.')
+    }
+    throw error
+  }
 }
 
 export async function duplicateProduct(productId: string) {
@@ -276,8 +301,11 @@ export async function upsertVariants(
     if (error) throw error
   }
 
-  for (const variant of variants) {
-    if (variant.id) {
+  const toUpdate = variants.filter((variant) => variant.id)
+  const toInsert = variants.filter((variant) => !variant.id)
+
+  await Promise.all(
+    toUpdate.map(async (variant) => {
       const { error } = await supabase
         .from('product_variants')
         .update({
@@ -286,19 +314,23 @@ export async function upsertVariants(
           active: variant.active,
           display_order: variant.display_order,
         })
-        .eq('id', variant.id)
+        .eq('id', variant.id!)
       if (error) throw error
-    } else {
-      const { error } = await supabase.from('product_variants').insert({
+    }),
+  )
+
+  if (toInsert.length) {
+    const { error } = await supabase.from('product_variants').insert(
+      toInsert.map((variant) => ({
         product_id: productId,
         size_label: variant.size_label,
         sku: variant.sku || null,
         quantity: Math.max(0, variant.quantity),
         active: variant.active,
         display_order: variant.display_order,
-      })
-      if (error) throw error
-    }
+      })),
+    )
+    if (error) throw error
   }
 }
 
@@ -318,17 +350,26 @@ export async function addProductImage(image: Omit<ProductImage, 'id' | 'created_
   return data
 }
 
+export async function addProductImages(images: Omit<ProductImage, 'id' | 'created_at'>[]) {
+  if (!images.length) return []
+  const { data, error } = await supabase.from('product_images').insert(images).select('*')
+  if (error) throw error
+  return data ?? []
+}
+
 export async function deleteProductImage(id: string) {
   const { error } = await supabase.from('product_images').delete().eq('id', id)
   if (error) throw error
 }
 
 export async function updateImageOrder(images: { id: string; display_order: number; is_primary: boolean }[]) {
-  for (const image of images) {
-    const { error } = await supabase
-      .from('product_images')
-      .update({ display_order: image.display_order, is_primary: image.is_primary })
-      .eq('id', image.id)
-    if (error) throw error
-  }
+  await Promise.all(
+    images.map(async (image) => {
+      const { error } = await supabase
+        .from('product_images')
+        .update({ display_order: image.display_order, is_primary: image.is_primary })
+        .eq('id', image.id)
+      if (error) throw error
+    }),
+  )
 }
