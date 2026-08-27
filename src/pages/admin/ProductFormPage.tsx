@@ -303,7 +303,7 @@ export function ProductFormPage() {
           </Button>
         </div>
         <p className="text-xs text-metal-500">
-          O estoque de variantes já existentes deve ser alterado em Estoque para manter o histórico. Novas variantes aceitam quantidade inicial.
+          A quantidade pode ser alterada aqui. Mudanças em variantes já salvas geram histórico de estoque (ajuste).
         </p>
         <div className="space-y-3">
           {variants.map((variant, index) => (
@@ -319,7 +319,6 @@ export function ProductFormPage() {
               <Input
                 type="number"
                 min="0"
-                disabled={Boolean(variant.id)}
                 value={variant.quantity}
                 onChange={(event) =>
                   setVariants((current) =>

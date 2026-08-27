@@ -290,9 +290,10 @@ export async function upsertVariants(
   productId: string,
   variants: { id?: string; size_label: string; sku: string; quantity: number; active: boolean; display_order: number }[],
 ) {
-  const existing = await supabase.from('product_variants').select('id').eq('product_id', productId)
+  const existing = await supabase.from('product_variants').select('id, quantity').eq('product_id', productId)
   if (existing.error) throw existing.error
 
+  const currentById = new Map((existing.data ?? []).map((row) => [row.id, Number(row.quantity ?? 0)]))
   const keepIds = variants.map((variant) => variant.id).filter(Boolean) as string[]
   const toDelete = (existing.data ?? []).filter((row) => !keepIds.includes(row.id)).map((row) => row.id)
 
@@ -316,6 +317,18 @@ export async function upsertVariants(
         })
         .eq('id', variant.id!)
       if (error) throw error
+
+      const nextQuantity = Math.max(0, variant.quantity)
+      const previousQuantity = currentById.get(variant.id!)
+      if (previousQuantity !== undefined && previousQuantity !== nextQuantity) {
+        const { error: stockError } = await supabase.rpc('adjust_stock', {
+          p_variant_id: variant.id!,
+          p_type: 'ajuste',
+          p_quantity: nextQuantity,
+          p_reason: 'Ajuste pelo cadastro do produto',
+        })
+        if (stockError) throw stockError
+      }
     }),
   )
 
