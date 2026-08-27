@@ -31,9 +31,12 @@ export function isLowStock(quantity: number, threshold: number) {
   return quantity > 0 && quantity <= threshold
 }
 
-/** Max para solicitação pública (WhatsApp/carrinho) sem vazar estoque exato */
-export function publicMaxQuantity(variant: Pick<ProductVariant, 'quantity' | 'in_stock' | 'active'>) {
+/** Max para solicitação pública (WhatsApp/carrinho) sem vazar estoque exato acima do teto */
+export function publicMaxQuantity(
+  variant: Pick<ProductVariant, 'quantity' | 'in_stock' | 'active' | 'max_request_qty'>,
+) {
   if (!variantIsInStock(variant)) return 0
   if (variant.quantity > 0) return Math.min(variant.quantity, PUBLIC_MAX_REQUEST_QTY)
-  return PUBLIC_MAX_REQUEST_QTY
+  if (variant.max_request_qty != null && variant.max_request_qty > 0) return variant.max_request_qty
+  return 0
 }

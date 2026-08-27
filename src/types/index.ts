@@ -64,6 +64,8 @@ export interface ProductVariant {
   sku: string | null
   /** Quantidade exata — disponível só para admin autenticado */
   quantity: number
+  /** Limite público para pedido (least(quantity, 10)); anon recebe só isto */
+  max_request_qty?: number
   /** Disponibilidade pública (anon não recebe quantity) */
   in_stock?: boolean
   active: boolean

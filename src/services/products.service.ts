@@ -5,7 +5,7 @@ import { slugify } from '@/lib/slug'
 function mapProduct(row: Partial<Product> & {
   category?: Partial<Category> | null
   product_images?: ProductImage[]
-  product_variants?: Array<Partial<ProductVariant> & { in_stock?: boolean }>
+  product_variants?: Array<Partial<ProductVariant> & { in_stock?: boolean; max_request_qty?: number }>
 }): ProductWithRelations {
   return {
     id: row.id!,
@@ -31,6 +31,8 @@ function mapProduct(row: Partial<Product> & {
         size_label: variant.size_label ?? '',
         sku: variant.sku ?? null,
         quantity: Number(variant.quantity ?? 0),
+        max_request_qty:
+          variant.max_request_qty == null ? undefined : Number(variant.max_request_qty),
         in_stock:
           typeof variant.in_stock === 'boolean'
             ? variant.in_stock
@@ -58,6 +60,14 @@ const PRODUCT_CARD_SELECT = `
   category:categories(id, name, slug),
   product_images(id, url, alt, is_primary, display_order),
   product_variants(id, size_label, active, display_order, in_stock)
+`
+
+/** Detalhe público — inclui max_request_qty para limitar quantidade no carrinho/WhatsApp */
+const PRODUCT_DETAIL_SELECT = `
+  id, category_id, name, slug, sku, description, additional_info, price, promotional_price, status, featured, is_new, created_at, updated_at,
+  category:categories(id, name, slug),
+  product_images(id, url, alt, is_primary, display_order),
+  product_variants(id, size_label, active, display_order, in_stock, max_request_qty)
 `
 
 /** Listagens admin / selects de venda e estoque — sem imagens */
@@ -155,7 +165,7 @@ export async function getRecentProducts() {
 export async function getPublicProduct(idOrSlug: string) {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrSlug)
 
-  let query = supabase.from('products').select(PRODUCT_CARD_SELECT).eq('status', 'active')
+  let query = supabase.from('products').select(PRODUCT_DETAIL_SELECT).eq('status', 'active')
   query = isUuid ? query.eq('id', idOrSlug) : query.eq('slug', idOrSlug)
 
   const { data, error } = await query.maybeSingle()

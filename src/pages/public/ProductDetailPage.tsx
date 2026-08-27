@@ -47,6 +47,14 @@ export function ProductDetailPage() {
   const inStock = product ? productHasStock(product.variants) : false
   const price = product ? effectivePrice(product.price, product.promotional_price) : 0
 
+  useEffect(() => {
+    if (maxQty <= 0) {
+      setQuantity(1)
+      return
+    }
+    setQuantity((current) => Math.min(current, maxQty))
+  }, [maxQty, variantId])
+
   const waHref = useMemo(() => {
     if (!product || !variant) return null
     return buildWhatsAppLink(settings?.whatsapp, productInterestMessage(settings, product, variant.size_label, quantity))
@@ -118,7 +126,7 @@ export function ProductDetailPage() {
               className="max-w-32"
               value={quantity}
               disabled={!maxQty}
-              onChange={(event) => setQuantity(Number(event.target.value))}
+              onChange={(event) => setQuantity(Math.min(maxQty, Math.max(1, Number(event.target.value))))}
             >
               {Array.from({ length: Math.max(maxQty, 0) }, (_, index) => index + 1).map((value) => (
                 <option key={value} value={value}>

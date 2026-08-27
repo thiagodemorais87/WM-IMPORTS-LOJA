@@ -18,7 +18,12 @@ export async function listAdminCategories() {
   return (data ?? []) as Category[]
 }
 
-export async function createCategory(payload: { name: string; description: string; active: boolean }) {
+export async function createCategory(payload: {
+  name: string
+  description: string
+  active: boolean
+  display_order: number
+}) {
   const { data, error } = await supabase
     .from('categories')
     .insert({
@@ -26,6 +31,7 @@ export async function createCategory(payload: { name: string; description: strin
       slug: slugify(payload.name),
       description: payload.description || null,
       active: payload.active,
+      display_order: payload.display_order,
     })
     .select('*')
     .single()
@@ -41,6 +47,7 @@ export async function updateCategory(
     .from('categories')
     .update({
       name: payload.name,
+      slug: slugify(payload.name),
       description: payload.description || null,
       active: payload.active,
       display_order: payload.display_order,
@@ -50,6 +57,14 @@ export async function updateCategory(
     .single()
   if (error) throw error
   return data as Category
+}
+
+export async function updateCategoryOrder(idsOrdered: string[]) {
+  const results = await Promise.all(
+    idsOrdered.map((id, index) => supabase.from('categories').update({ display_order: index + 1 }).eq('id', id)),
+  )
+  const failed = results.find((result) => result.error)
+  if (failed?.error) throw failed.error
 }
 
 export async function deleteCategory(id: string) {
