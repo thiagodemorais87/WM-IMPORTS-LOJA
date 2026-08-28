@@ -1,10 +1,34 @@
-import type { User } from '@supabase/supabase-js'
+import type { AuthError, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/types'
 
+export function mapAuthError(error: unknown): Error {
+  if (!error || typeof error !== 'object') {
+    return new Error('Não foi possível entrar.')
+  }
+
+  const authError = error as AuthError & { status?: number }
+  const message = authError.message?.toLowerCase() ?? ''
+  const status = authError.status
+
+  if (status === 429 || message.includes('rate limit') || message.includes('too many requests')) {
+    return new Error('Muitas tentativas. Aguarde alguns minutos e tente novamente.')
+  }
+
+  if (
+    message.includes('invalid login credentials') ||
+    message.includes('invalid credentials') ||
+    status === 400
+  ) {
+    return new Error('E-mail ou senha incorretos.')
+  }
+
+  return new Error(authError.message || 'Não foi possível entrar.')
+}
+
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
+  if (error) throw mapAuthError(error)
   return data
 }
 

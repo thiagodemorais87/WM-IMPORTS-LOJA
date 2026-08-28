@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAdminInactivityLogout } from '@/hooks/useAdminInactivityLogout'
+import { Seo } from '@/components/ui/Seo'
 import logo from '@/assets/logo.png'
 import { cn } from '@/lib/cn'
 
@@ -32,6 +34,7 @@ export function AdminLayout() {
   const { logout, profile } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  useAdminInactivityLogout()
 
   const nav = (
     <nav className="grid gap-1">
@@ -57,6 +60,7 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-ink text-metal-100 lg:grid lg:grid-cols-[16rem_1fr]">
+      <Seo title="Painel administrativo" robots="noindex, nofollow" />
       <aside className="hidden border-r border-white/10 p-5 lg:block">
         <img src={logo} alt="WM Imports" className="mb-8 h-12" />
         {nav}

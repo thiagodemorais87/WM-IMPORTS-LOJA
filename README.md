@@ -101,7 +101,7 @@ npx supabase db push
 1. Sign-ups **desabilitados**.
 2. Confirmação de e-mail recomendada.
 3. Senha forte (mín. 12 caracteres) — alinhar no Dashboard com o `config.toml` local.
-4. Captcha (hCaptcha/Turnstile) recomendado no Dashboard Auth.
+4. Smoke tests: `npm run security:smoke` (ver [docs/security-runbook.md](docs/security-runbook.md)).
 5. Rotacione a senha se ela já tiver aparecido em commits antigos do repositório.
 6. Promoção a admin **somente** via `bootstrap_admin.sql` (ou SQL Editor com flag controlada).
 

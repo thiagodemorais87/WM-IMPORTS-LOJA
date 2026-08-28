@@ -211,10 +211,7 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# Este projeto não usa captcha externo — proteção via rate limits + RLS.
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.

@@ -2,7 +2,9 @@
 
 Use a anon key do projeto (a mesma do frontend). Não use a service role.
 
-Substitua `URL` e `ANON`.
+**Automatizado:** `npm run security:smoke` (lê `.env.local` ou variáveis de ambiente).
+
+Substitua `URL` e `ANON` nos exemplos abaixo.
 
 ## 1. Anon — leitura pública OK
 

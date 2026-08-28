@@ -48,3 +48,10 @@ export const DEFAULT_FILTERS = {
 }
 
 export const LOW_STOCK_DEFAULT = 3
+
+export const ADMIN_LOGIN_MAX_ATTEMPTS = 5
+export const ADMIN_LOGIN_LOCKOUT_MS = 15 * 60 * 1000
+export const ADMIN_LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000
+
+/** Logout automático após inatividade no painel (ms). */
+export const ADMIN_SESSION_INACTIVITY_MS = 30 * 60 * 1000
