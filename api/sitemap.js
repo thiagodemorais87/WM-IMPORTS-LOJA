@@ -1,4 +1,4 @@
-const SITE_URL = 'https://wmimportspe.com.br'
+const SITE_URL = 'https://www.wmimportspe.com.br'
 
 function escapeXml(value) {
   return String(value)
@@ -17,7 +17,7 @@ function urlEntry(loc, changefreq, priority) {
   </url>`
 }
 
-module.exports = async function handler(_req, res) {
+export default async function handler(_req, res) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
   const supabaseKey =
     process.env.VITE_SUPABASE_ANON_KEY ||

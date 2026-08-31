@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /carrinho
 
-Sitemap: https://wmimportspe.com.br/sitemap.xml
+Sitemap: https://www.wmimportspe.com.br/sitemap.xml
