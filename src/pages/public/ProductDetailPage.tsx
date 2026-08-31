@@ -14,6 +14,7 @@ import { useSettings } from '@/contexts/SettingsContext'
 import { availableSizes, productHasStock, publicMaxQuantity, variantIsInStock } from '@/lib/stock'
 import { effectivePrice, formatCurrency } from '@/lib/format'
 import { buildWhatsAppLink, productInterestMessage } from '@/lib/whatsapp'
+import { SITE_URL } from '@/constants'
 import type { ProductWithRelations } from '@/types'
 
 export function ProductDetailPage() {
@@ -65,13 +66,44 @@ export function ProductDetailPage() {
   if (!product) return <div className="mx-auto max-w-7xl px-4 py-16"><EmptyState title="Produto não encontrado." /></div>
 
   const image = product.images.find((item) => item.is_primary) ?? product.images[0]
+  const productPath = `/produto/${product.slug}`
+  const productDescription =
+    product.description ?? `${product.name} na WM Imports. Moda e acessórios com envio de Sertânia/PE.`
 
   return (
     <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-2">
       <Seo
         title={product.name}
-        description={product.description ?? `${product.name} na WM Imports.`}
+        description={productDescription}
         image={image?.url}
+        path={productPath}
+        type="product"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: productDescription,
+          image: product.images.map((item) => item.url).filter(Boolean),
+          sku: product.sku ?? undefined,
+          url: `${SITE_URL}${productPath}`,
+          brand: {
+            '@type': 'Brand',
+            name: 'WM Imports',
+          },
+          offers: {
+            '@type': 'Offer',
+            url: `${SITE_URL}${productPath}`,
+            priceCurrency: 'BRL',
+            price: String(price),
+            availability: inStock
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+            seller: {
+              '@type': 'Organization',
+              name: 'WM Imports',
+            },
+          },
+        }}
       />
       <ProductGallery images={product.images} name={product.name} />
       <div>

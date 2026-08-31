@@ -36,7 +36,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      <Seo title="Dashboard" />
+      <Seo title="Dashboard" robots="noindex, nofollow" />
       <div className="mb-8 flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-metal-500">Painel</p>

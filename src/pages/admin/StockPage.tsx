@@ -32,7 +32,7 @@ export function StockPage() {
 
   return (
     <div>
-      <Seo title="Estoque" />
+      <Seo title="Estoque" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Estoque</h1>
       <form
         className="mt-6 grid gap-3 rounded-2xl border border-white/10 p-4 md:grid-cols-2"

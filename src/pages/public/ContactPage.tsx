@@ -12,7 +12,11 @@ export function ContactPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <Seo title="Contato" />
+      <Seo
+        title="Contato"
+        path="/contato"
+        description="Fale com a WM Imports pelo WhatsApp. Consulte disponibilidade, valores e condições de envio de Sertânia/PE."
+      />
       <p className="text-xs uppercase tracking-[0.3em] text-metal-500">Fale com a loja</p>
       <h1 className="mt-3 font-display text-4xl">Contato</h1>
       <p className="mt-4 text-metal-400">

@@ -37,7 +37,7 @@ export function SettingsPage() {
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-4">
-      <Seo title="Configurações" />
+      <Seo title="Configurações" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Configurações da loja</h1>
       <Field label="Nome da loja">
         <Input value={settings.store_name} onChange={(event) => setSettings({ ...settings, store_name: event.target.value })} />

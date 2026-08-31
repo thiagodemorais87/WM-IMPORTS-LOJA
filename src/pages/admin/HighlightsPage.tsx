@@ -22,7 +22,7 @@ export function HighlightsPage() {
 
   return (
     <div>
-      <Seo title="Diferenciais" />
+      <Seo title="Diferenciais" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Diferenciais</h1>
       <p className="mt-2 text-sm text-metal-400">Não cadastre condições que a loja ainda não oferece, como frete grátis.</p>
       <form

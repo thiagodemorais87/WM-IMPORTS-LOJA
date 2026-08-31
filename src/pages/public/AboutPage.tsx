@@ -7,7 +7,11 @@ export function AboutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <Seo title="Sobre" description="Conheça a WM Imports, loja de moda em Sertânia/PE com envio para todo o Brasil." />
+      <Seo
+        title="Sobre"
+        path="/sobre"
+        description="Conheça a WM Imports, loja de moda em Sertânia/PE com envio para todo o Brasil."
+      />
       <img src={logo} alt="WM Imports" className="h-20" />
       <p className="mt-8 text-xs uppercase tracking-[0.3em] text-metal-500">A loja</p>
       <h1 className="mt-3 font-display text-4xl">WM Imports</h1>

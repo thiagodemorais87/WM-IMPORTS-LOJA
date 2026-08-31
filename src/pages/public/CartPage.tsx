@@ -15,7 +15,7 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <Seo title="Carrinho" />
+      <Seo title="Carrinho" path="/carrinho" robots="noindex, nofollow" />
       <h1 className="font-display text-4xl">Carrinho</h1>
       <p className="mt-2 text-sm text-metal-400">
         Isto é apenas uma intenção de compra. Não há pagamento online. Preço e disponibilidade finais são confirmados
@@ -31,7 +31,7 @@ export function CartPage() {
           {items.map((item) => (
             <div key={item.variantId} className="flex gap-4 rounded-2xl border border-white/10 bg-panel p-4">
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt="" className="h-24 w-20 rounded-xl object-cover" />
+                <img src={item.imageUrl} alt={item.name} className="h-24 w-20 rounded-xl object-cover" />
               ) : (
                 <div className="h-24 w-20 rounded-xl bg-ink-soft" />
               )}

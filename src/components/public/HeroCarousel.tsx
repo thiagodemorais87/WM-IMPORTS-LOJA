@@ -93,7 +93,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
                     <div className="absolute inset-8 rounded-full bg-metal-300/10 blur-3xl sm:inset-12" />
                     <img
                       src={heroImage}
-                      alt="WM Imports"
+                      alt={banner.title?.trim() || 'WM Imports'}
                       decoding="async"
                       loading={isActive || bannerIndex === 0 ? 'eager' : 'lazy'}
                       className="relative w-[min(220px,70%)] bg-transparent object-contain drop-shadow-2xl sm:w-[min(320px,80%)] lg:w-[min(420px,100%)]"

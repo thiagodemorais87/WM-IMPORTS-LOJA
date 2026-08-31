@@ -61,7 +61,11 @@ export function HomePage() {
 
   return (
     <>
-      <Seo title="Moda e Acessórios" />
+      <Seo
+        title="Moda e Acessórios"
+        path="/"
+        description="WM Imports — moda, estilo e qualidade. Loja em Sertânia/PE com envio para todo o Brasil. Camisas, polos, t-shirts, calças e óculos."
+      />
       {error ? (
         <div className="mx-auto max-w-7xl px-4 py-16">
           <ErrorState message={error} onRetry={load} />

@@ -131,7 +131,11 @@ export function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <Seo title="Produtos" description="Catálogo WM Imports — camisas, polos, t-shirts, calças e óculos." />
+      <Seo
+        title="Produtos"
+        path="/produtos"
+        description="Catálogo WM Imports — camisas, polos, t-shirts, calças e óculos. Envio de Sertânia/PE para todo o Brasil."
+      />
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-metal-500">Catálogo</p>

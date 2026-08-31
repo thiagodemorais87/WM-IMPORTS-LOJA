@@ -56,7 +56,7 @@ export function ProductsListPage() {
 
   return (
     <div>
-      <Seo title="Produtos" />
+      <Seo title="Produtos" robots="noindex, nofollow" />
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl">Produtos</h1>

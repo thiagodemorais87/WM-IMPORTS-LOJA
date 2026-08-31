@@ -1,6 +1,7 @@
 export const APP_NAME = 'WM Imports'
 export const APP_TAGLINE = 'De Sertânia para todo o Brasil.'
 export const APP_LOCATION = 'Sertânia/PE'
+export const SITE_URL = 'https://wmimportspe.com.br'
 export const DEFAULT_SEO_DESCRIPTION =
   'WM Imports — moda, estilo e qualidade. Loja em Sertânia/PE com envio para todo o Brasil. Camisas, polos, t-shirts, calças e óculos.'
 

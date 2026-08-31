@@ -137,7 +137,7 @@ export function CategoriesPage() {
 
   return (
     <div>
-      <Seo title="Categorias" />
+      <Seo title="Categorias" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Categorias</h1>
       <p className="mt-2 text-sm text-metal-400">Arraste para reordenar. A ordem aparece no catálogo e na home.</p>
       <form

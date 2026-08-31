@@ -308,7 +308,7 @@ export function BannersPage() {
 
   return (
     <div>
-      <Seo title="Banners" />
+      <Seo title="Banners" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Banners</h1>
       <p className="mt-2 text-sm text-metal-400">
         Arraste pelo ícone para reordenar. O banner padrão fica sempre ativo na home e não pode ser excluído.

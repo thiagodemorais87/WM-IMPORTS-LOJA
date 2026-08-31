@@ -46,7 +46,7 @@ export function SalesPage() {
 
   return (
     <div>
-      <Seo title="Vendas" />
+      <Seo title="Vendas" robots="noindex, nofollow" />
       <h1 className="font-display text-3xl">Vendas</h1>
       <form
         className="mt-6 grid gap-3 rounded-2xl border border-white/10 p-4 md:grid-cols-2"

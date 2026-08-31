@@ -188,7 +188,7 @@ export function ProductFormPage() {
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-3xl space-y-8">
-      <Seo title={isEdit ? 'Editar produto' : 'Novo produto'} />
+      <Seo title={isEdit ? 'Editar produto' : 'Novo produto'} robots="noindex, nofollow" />
       <div>
         <h1 className="font-display text-3xl">{isEdit ? 'Editar produto' : 'Novo produto'}</h1>
         <p className="text-sm text-metal-400">Preencha as informações, imagens e variações de tamanho.</p>
