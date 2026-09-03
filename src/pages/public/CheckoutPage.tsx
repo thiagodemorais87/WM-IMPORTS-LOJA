@@ -29,6 +29,7 @@ export function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<CreateOrderResult | null>(null)
   const [whatsappHref, setWhatsappHref] = useState<string | null>(null)
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null)
 
   const estimatedTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
 
@@ -80,6 +81,7 @@ export function CheckoutPage() {
       clear()
       setSuccess(order)
       setWhatsappHref(href)
+      setConfirmationEmail(parsed.data.customer_email)
       void queueOrderReceivedEmail(order.id)
 
       if (href) {
@@ -103,10 +105,27 @@ export function CheckoutPage() {
         <Seo title="Pedido realizado" path="/checkout" robots="noindex, nofollow" />
         <h1 className="font-display text-4xl">Pedido realizado</h1>
         <p className="mt-2 text-sm text-metal-400">
-          Seu pedido <span className="text-white">{success.order_number}</span> foi registrado. Envie a mensagem no
-          WhatsApp para confirmar pagamento e disponibilidade com a loja.
+          Seu pedido <span className="text-white">{success.order_number}</span> foi registrado com sucesso.
         </p>
-        <div className="mt-8 rounded-2xl border border-white/10 bg-panel p-6">
+
+        <ul className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-panel p-6 text-sm text-metal-300">
+          <li>
+            <strong className="text-white">1. Envie a mensagem no WhatsApp</strong> — use o botão abaixo para a loja
+            receber os dados do pedido.
+          </li>
+          <li>
+            <strong className="text-white">2. Não precisa responder</strong> à conversa; em breve nossa equipe entrará
+            em contato com você.
+          </li>
+          {confirmationEmail ? (
+            <li>
+              <strong className="text-white">3. Confirmação por e-mail</strong> — enviamos um resumo para{' '}
+              <span className="text-white">{confirmationEmail}</span>.
+            </li>
+          ) : null}
+        </ul>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-panel p-6">
           <p className="text-sm text-metal-400">Total do pedido</p>
           <p className="mt-1 text-2xl text-white">{formatCurrency(success.total_amount)}</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">

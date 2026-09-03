@@ -7,6 +7,8 @@ const STATUS_LABELS = {
   cancelled: 'Cancelado',
 }
 
+export const DEFAULT_LOGO_URL = 'https://www.wmimportspe.com.br/logo.png'
+
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -37,10 +39,12 @@ function itemsRows(items) {
     .join('')
 }
 
-function layout({ title, intro, order, extraHtml = '' }) {
+function layout({ title, intro, order, extraHtml = '', logoUrl, storeName = 'WM Imports' }) {
   const orderNumber = escapeHtml(order.order_number)
   const customerName = escapeHtml(order.customer_name)
   const statusLabel = escapeHtml(STATUS_LABELS[order.status] || order.status)
+  const safeLogoUrl = escapeHtml(logoUrl || DEFAULT_LOGO_URL)
+  const safeStoreName = escapeHtml(storeName)
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -51,8 +55,8 @@ function layout({ title, intro, order, extraHtml = '' }) {
       <td align="center">
         <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:12px;padding:28px 24px;">
           <tr><td>
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#71717a;">WM Imports</p>
-            <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(title)}</h1>
+            <img src="${safeLogoUrl}" alt="${safeStoreName}" height="48" style="display:block;margin:0 auto 16px;max-width:180px;height:auto;" />
+            <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;text-align:center;">${escapeHtml(title)}</h1>
             <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#3f3f46;">${intro}</p>
 
             <p style="margin:0 0 6px;font-size:14px;"><strong>Pedido:</strong> ${orderNumber}</p>
@@ -76,7 +80,7 @@ function layout({ title, intro, order, extraHtml = '' }) {
 
             <p style="margin:20px 0 0;font-size:16px;"><strong>Total: ${formatCurrency(order.total_amount)}</strong></p>
             ${extraHtml}
-            <p style="margin:28px 0 0;font-size:12px;color:#a1a1aa;">WM Imports — Sertânia/PE</p>
+            <p style="margin:28px 0 0;font-size:12px;color:#a1a1aa;text-align:center;">${safeStoreName} — Sertânia/PE</p>
           </td></tr>
         </table>
       </td>
@@ -86,20 +90,24 @@ function layout({ title, intro, order, extraHtml = '' }) {
 </html>`
 }
 
-export function buildOrderEmail(emailType, order) {
+export function buildOrderEmail(emailType, order, branding = {}) {
   const n = order.order_number
+  const logoUrl = branding.logoUrl || process.env.EMAIL_LOGO_URL || DEFAULT_LOGO_URL
+  const storeName = branding.storeName || 'WM Imports'
+  const layoutOptions = { logoUrl, storeName }
 
   switch (emailType) {
     case 'order_received':
       return {
-        subject: `Pedido #${n} recebido - WM Imports`,
+        subject: `Pedido #${n} recebido - ${storeName}`,
         html: layout({
           title: `Pedido #${n} recebido`,
           intro:
-            'Recebemos o seu pedido. Ele está <strong>aguardando pagamento</strong> e será confirmado pelo WhatsApp com a loja.',
+            'Recebemos o seu pedido. Ele está <strong>aguardando pagamento</strong> e nossa equipe entrará em contato em breve pelo WhatsApp.',
           order: { ...order, status: 'pending_payment' },
           extraHtml:
-            '<p style="margin:16px 0 0;font-size:14px;color:#3f3f46;">Continue o atendimento pelo WhatsApp para combinar pagamento e entrega.</p>',
+            '<p style="margin:16px 0 0;font-size:14px;color:#3f3f46;line-height:1.5;">Este é um e-mail automático de confirmação — <strong>não é necessário responder</strong>. Envie a mensagem no WhatsApp apenas para a loja receber os dados do pedido; em breve você receberá nosso retorno.</p>',
+          ...layoutOptions,
         }),
       }
     case 'payment_confirmed':
@@ -109,6 +117,7 @@ export function buildOrderEmail(emailType, order) {
           title: `Pagamento confirmado`,
           intro: 'Confirmamos o pagamento do seu pedido. Em breve iniciaremos a preparação.',
           order: { ...order, status: 'paid' },
+          ...layoutOptions,
         }),
       }
     case 'order_shipped':
@@ -118,6 +127,7 @@ export function buildOrderEmail(emailType, order) {
           title: `Pedido enviado`,
           intro: 'Seu pedido foi enviado. Qualquer dúvida, fale conosco pelo WhatsApp.',
           order: { ...order, status: 'shipped' },
+          ...layoutOptions,
         }),
       }
     case 'order_completed':
@@ -125,8 +135,9 @@ export function buildOrderEmail(emailType, order) {
         subject: `Pedido #${n} concluído`,
         html: layout({
           title: `Pedido concluído`,
-          intro: 'Seu pedido foi concluído. Obrigado por comprar na WM Imports!',
+          intro: `Seu pedido foi concluído. Obrigado por comprar na ${storeName}!`,
           order: { ...order, status: 'completed' },
+          ...layoutOptions,
         }),
       }
     default:

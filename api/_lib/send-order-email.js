@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from './supabase-admin.js'
 import { isResendConfigured, sendEmail } from './resend-client.js'
-import { buildOrderEmail } from './order-email-templates.js'
+import { buildOrderEmail, DEFAULT_LOGO_URL } from './order-email-templates.js'
 
 export const EMAIL_TYPES = ['order_received', 'payment_confirmed', 'order_shipped', 'order_completed']
 
@@ -35,6 +35,20 @@ async function insertLog(admin, payload) {
   const { error } = await admin.from('email_logs').insert(payload)
   if (error) {
     console.error('[email_logs] insert error:', error.message)
+  }
+}
+
+async function loadBranding(admin) {
+  const { data } = await admin.from('store_settings').select('store_name, logo_url').eq('id', 1).maybeSingle()
+
+  const logoUrl =
+    process.env.EMAIL_LOGO_URL ||
+    (data?.logo_url && String(data.logo_url).startsWith('http') ? data.logo_url : null) ||
+    DEFAULT_LOGO_URL
+
+  return {
+    storeName: data?.store_name || 'WM Imports',
+    logoUrl,
   }
 }
 
@@ -103,10 +117,15 @@ export async function sendOrderEmail({ orderId, emailType }) {
   let subject
   let html
   try {
-    const built = buildOrderEmail(emailType, {
-      ...order,
-      items: order.items ?? [],
-    })
+    const branding = await loadBranding(admin)
+    const built = buildOrderEmail(
+      emailType,
+      {
+        ...order,
+        items: order.items ?? [],
+      },
+      branding,
+    )
     subject = built.subject
     html = built.html
   } catch (error) {
