@@ -4,17 +4,39 @@ import { getStoreSettings } from '@/services/settings.service'
 import { totalStock } from '@/lib/stock'
 import { subDays, format } from 'date-fns'
 
+const VALID_REVENUE_STATUSES = ['paid', 'preparing', 'shipped', 'completed'] as const
+const BRAZIL_TZ = 'America/Sao_Paulo'
+
+function brazilDateKey(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: BRAZIL_TZ }).format(date)
+}
+
+function brazilMonthKey(date: Date): string {
+  return brazilDateKey(date).slice(0, 7)
+}
+
+function orderReferenceDate(order: { paid_at: string | null; created_at: string }): string {
+  return order.paid_at ?? order.created_at
+}
+
+function isValidRevenueOrder(status: string): boolean {
+  return (VALID_REVENUE_STATUSES as readonly string[]).includes(status)
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [productsResult, settings, salesResult, itemsResult] = await Promise.all([
+  const [productsResult, settings, ordersResult, orderItemsResult] = await Promise.all([
     supabase.from('products').select('id, status, product_variants(quantity)'),
     getStoreSettings(),
-    supabase.from('sales').select('id, total, sold_at').order('sold_at', { ascending: false }),
-    supabase.from('sale_items').select('product_name, quantity'),
+    supabase
+      .from('orders')
+      .select('id, status, total_amount, paid_at, created_at')
+      .order('created_at', { ascending: false }),
+    supabase.from('order_items').select('order_id, product_name, quantity'),
   ])
 
   if (productsResult.error) throw productsResult.error
-  if (salesResult.error) throw salesResult.error
-  if (itemsResult.error) throw itemsResult.error
+  if (ordersResult.error) throw ordersResult.error
+  if (orderItemsResult.error) throw orderItemsResult.error
 
   const products = productsResult.data ?? []
   const threshold = settings?.low_stock_threshold ?? 3
@@ -26,13 +48,40 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     return qty > 0 && qty <= threshold
   }).length
 
-  const sales = salesResult.data ?? []
-  const salesTotal = sales.reduce((sum, sale) => sum + Number(sale.total), 0)
+  const orders = ordersResult.data ?? []
+  const todayKey = brazilDateKey(new Date())
+  const monthKey = brazilMonthKey(new Date())
+
+  const pendingPaymentCount = orders.filter((order) => order.status === 'pending_payment').length
+
+  const validOrders = orders.filter((order) => isValidRevenueOrder(order.status))
+  const ordersToday = validOrders.filter(
+    (order) => brazilDateKey(new Date(orderReferenceDate(order))) === todayKey,
+  )
+  const ordersMonth = validOrders.filter(
+    (order) => brazilMonthKey(new Date(orderReferenceDate(order))) === monthKey,
+  )
+
+  const salesTodayCount = ordersToday.length
+  const revenueToday = ordersToday.reduce((sum, order) => sum + Number(order.total_amount), 0)
+  const salesMonthCount = ordersMonth.length
+  const revenueMonth = ordersMonth.reduce((sum, order) => sum + Number(order.total_amount), 0)
+  const averageTicket = salesMonthCount > 0 ? revenueMonth / salesMonthCount : 0
+
+  const validOrderIds = new Set(validOrders.map((order) => order.id))
+  const monthOrderIds = new Set(ordersMonth.map((order) => order.id))
 
   const topMap = new Map<string, number>()
-  for (const item of itemsResult.data ?? []) {
+  let productsSoldMonth = 0
+
+  for (const item of orderItemsResult.data ?? []) {
+    if (!validOrderIds.has(item.order_id)) continue
     topMap.set(item.product_name, (topMap.get(item.product_name) ?? 0) + item.quantity)
+    if (monthOrderIds.has(item.order_id)) {
+      productsSoldMonth += item.quantity
+    }
   }
+
   const topProducts = [...topMap.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
@@ -40,11 +89,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   const days = Array.from({ length: 14 }, (_, index) => format(subDays(new Date(), 13 - index), 'yyyy-MM-dd'))
   const salesByDay = days.map((date) => {
-    const daySales = sales.filter((sale) => sale.sold_at.slice(0, 10) === date)
+    const dayOrders = validOrders.filter(
+      (order) => brazilDateKey(new Date(orderReferenceDate(order))) === date,
+    )
     return {
       date,
-      count: daySales.length,
-      total: daySales.reduce((sum, sale) => sum + Number(sale.total), 0),
+      count: dayOrders.length,
+      total: dayOrders.reduce((sum, order) => sum + Number(order.total_amount), 0),
     }
   })
 
@@ -54,8 +105,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     outOfStock,
     lowStock,
     totalUnits: units,
-    salesCount: sales.length,
-    salesTotal,
+    pendingPaymentCount,
+    salesTodayCount,
+    revenueToday,
+    salesMonthCount,
+    revenueMonth,
+    averageTicket,
+    productsSoldMonth,
     topProducts,
     salesByDay,
   }

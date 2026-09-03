@@ -170,6 +170,82 @@ export interface StoreHighlight {
   updated_at: string
 }
 
+export type OrderStatus = 'pending_payment' | 'paid' | 'preparing' | 'shipped' | 'completed' | 'cancelled'
+
+export type OrderEmailType = 'order_received' | 'payment_confirmed' | 'order_shipped' | 'order_completed'
+
+export interface Order {
+  id: string
+  order_number: string
+  customer_name: string
+  customer_phone: string
+  customer_email: string
+  notes: string | null
+  status: OrderStatus
+  payment_method: PaymentMethod | null
+  sale_id: string | null
+  discount_amount: number
+  total_amount: number
+  created_at: string
+  updated_at: string
+  paid_at: string | null
+}
+
+export interface OrderItem {
+  id?: string
+  order_id?: string
+  product_id: string
+  product_name: string
+  variation_id: string | null
+  variation_name: string | null
+  quantity: number
+  unit_price: number
+  total_price: number
+}
+
+export interface OrderWithItems extends Order {
+  items: OrderItem[]
+}
+
+export interface CreateOrderInput {
+  customer_name: string
+  customer_phone: string
+  customer_email: string
+  notes?: string
+  items: { variant_id: string; quantity: number }[]
+}
+
+export interface CreateOrderResult {
+  id: string
+  order_number: string
+  total_amount: number
+  items: OrderItem[]
+}
+
+export interface OrderItemInput {
+  id?: string
+  variant_id: string
+  quantity: number
+  unit_price: number
+}
+
+export interface UpdateOrderInput {
+  customer_name: string
+  customer_phone: string
+  customer_email: string
+  notes?: string
+  discount_amount: number
+  items: OrderItemInput[]
+}
+
+export function orderSubtotal(items: OrderItem[]) {
+  return items.reduce((sum, item) => sum + item.total_price, 0)
+}
+
+export function orderTotalFromItems(items: OrderItem[], discountAmount: number) {
+  return Math.max(orderSubtotal(items) - discountAmount, 0)
+}
+
 export interface CartItem {
   productId: string
   variantId: string
@@ -191,14 +267,49 @@ export interface CatalogFilters {
   sort: 'recent' | 'price_asc' | 'price_desc' | 'name'
 }
 
+export type OrderEventType =
+  | 'order_created'
+  | 'order_edited'
+  | 'payment_confirmed'
+  | 'order_cancelled'
+  | 'status_changed'
+  | 'stock_changed'
+  | 'email_sent'
+
+export interface OrderEvent {
+  id: string
+  order_id: string
+  event_type: OrderEventType
+  message: string
+  metadata: Record<string, unknown> | null
+  user_id: string | null
+  created_at: string
+}
+
+export interface OrderEmailLog {
+  id: string
+  order_id: string
+  customer_email: string
+  email_type: string
+  status: string
+  provider_id: string | null
+  error_message: string | null
+  created_at: string
+}
+
 export interface DashboardStats {
   totalProducts: number
   activeProducts: number
   outOfStock: number
   lowStock: number
   totalUnits: number
-  salesCount: number
-  salesTotal: number
+  pendingPaymentCount: number
+  salesTodayCount: number
+  revenueToday: number
+  salesMonthCount: number
+  revenueMonth: number
+  averageTicket: number
+  productsSoldMonth: number
   topProducts: { name: string; quantity: number }[]
   salesByDay: { date: string; total: number; count: number }[]
 }

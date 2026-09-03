@@ -90,6 +90,69 @@ await expectError('Anon insert produto bloqueado', () =>
 
 await expectError('Anon select sales bloqueado', () => supabase.from('sales').select('*').limit(1))
 
+await expectError('Anon select orders bloqueado', () => supabase.from('orders').select('*').limit(1))
+
+await expectError('Anon select order_events bloqueado', () =>
+  supabase.from('order_events').select('*').limit(1),
+)
+
+await expectError('Anon select email_logs bloqueado', () =>
+  supabase.from('email_logs').select('*').limit(1),
+)
+
+await expectError('Anon insert orders bloqueado', () =>
+  supabase.from('orders').insert({
+    order_number: `TEST-${Date.now()}`,
+    customer_name: 'Teste',
+    customer_phone: '87999999999',
+    customer_email: 'teste@example.com',
+    status: 'pending_payment',
+    total_amount: 0,
+  }),
+)
+
+await expectError('Anon RPC create_order payload inválido', () =>
+  supabase.rpc('create_order', {
+    p_customer_name: '',
+    p_customer_phone: '123',
+    p_customer_email: 'invalido',
+    p_notes: null,
+    p_items: [],
+  }),
+)
+
+await expectError('Anon RPC confirm_order_payment bloqueado', () =>
+  supabase.rpc('confirm_order_payment', {
+    p_order_id: '00000000-0000-0000-0000-000000000000',
+    p_payment_method: 'pix',
+  }),
+)
+
+await expectError('Anon RPC update_order bloqueado', () =>
+  supabase.rpc('update_order', {
+    p_order_id: '00000000-0000-0000-0000-000000000000',
+    p_customer_name: 'Teste',
+    p_customer_phone: '87999999999',
+    p_customer_email: 'teste@example.com',
+    p_notes: null,
+    p_discount_amount: 0,
+    p_items: [],
+  }),
+)
+
+await expectError('Anon RPC cancel_order bloqueado', () =>
+  supabase.rpc('cancel_order', {
+    p_order_id: '00000000-0000-0000-0000-000000000000',
+  }),
+)
+
+await expectError('Anon RPC update_order_status bloqueado', () =>
+  supabase.rpc('update_order_status', {
+    p_order_id: '00000000-0000-0000-0000-000000000000',
+    p_status: 'preparing',
+  }),
+)
+
 await expectError('Anon RPC register_sale bloqueado', () =>
   supabase.rpc('register_sale', {
     p_customer_name: 'x',

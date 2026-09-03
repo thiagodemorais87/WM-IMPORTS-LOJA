@@ -12,6 +12,14 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import type { DashboardStats } from '@/types'
 
+type SalesCard = {
+  label: string
+  value: number
+  currency?: boolean
+  suffix?: string
+  link?: string
+}
+
 export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -25,13 +33,26 @@ export function DashboardPage() {
   if (error) return <ErrorState message={error} />
   if (!stats) return <PageLoader />
 
-  const cards = [
+  const catalogCards = [
     { label: 'Produtos', value: stats.totalProducts },
     { label: 'Ativos', value: stats.activeProducts },
     { label: 'Estoque', value: stats.totalUnits, suffix: ' un.' },
     { label: 'Estoque baixo', value: stats.lowStock },
     { label: 'Esgotados', value: stats.outOfStock },
-    { label: 'Vendas', value: stats.salesCount },
+  ]
+
+  const salesCards: SalesCard[] = [
+    {
+      label: 'Aguardando pagamento',
+      value: stats.pendingPaymentCount,
+      link: '/admin/pedidos?status=pending_payment',
+    },
+    { label: 'Vendas hoje', value: stats.salesTodayCount },
+    { label: 'Faturamento hoje', value: stats.revenueToday, currency: true },
+    { label: 'Vendas do mês', value: stats.salesMonthCount },
+    { label: 'Faturamento do mês', value: stats.revenueMonth, currency: true },
+    { label: 'Ticket médio (mês)', value: stats.averageTicket, currency: true },
+    { label: 'Produtos vendidos (mês)', value: stats.productsSoldMonth, suffix: ' un.' },
   ]
 
   return (
@@ -47,8 +68,48 @@ export function DashboardPage() {
         </Link>
       </div>
 
+      <h2 className="mb-4 font-display text-lg text-white">Pedidos e vendas</h2>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {salesCards.map((card, index) => (
+          <FadeIn key={card.label} delay={index * 0.05}>
+            <Card className={card.link ? 'transition hover:border-white/20' : undefined}>
+              {card.link ? (
+                <Link to={card.link} className="block">
+                  <p className="text-sm text-metal-500">{card.label}</p>
+                  <p className="mt-2 font-display text-3xl text-white">
+                    {card.currency ? (
+                      formatCurrency(card.value)
+                    ) : (
+                      <>
+                        <CountUp value={card.value} />
+                        {card.suffix ?? ''}
+                      </>
+                    )}
+                  </p>
+                </Link>
+              ) : (
+                <>
+                  <p className="text-sm text-metal-500">{card.label}</p>
+                  <p className="mt-2 font-display text-3xl text-white">
+                    {card.currency ? (
+                      formatCurrency(card.value)
+                    ) : (
+                      <>
+                        <CountUp value={card.value} />
+                        {card.suffix ?? ''}
+                      </>
+                    )}
+                  </p>
+                </>
+              )}
+            </Card>
+          </FadeIn>
+        ))}
+      </div>
+
+      <h2 className="mb-4 mt-10 font-display text-lg text-white">Catálogo e estoque</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card, index) => (
+        {catalogCards.map((card, index) => (
           <FadeIn key={card.label} delay={index * 0.05}>
             <Card>
               <p className="text-sm text-metal-500">{card.label}</p>
@@ -59,15 +120,11 @@ export function DashboardPage() {
             </Card>
           </FadeIn>
         ))}
-        <Card>
-          <p className="text-sm text-metal-500">Valor vendido</p>
-          <p className="mt-2 font-display text-3xl text-white">{formatCurrency(stats.salesTotal)}</p>
-        </Card>
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <Card>
-          <h2 className="mb-4 font-display text-lg">Vendas (14 dias)</h2>
+          <h2 className="mb-4 font-display text-lg">Faturamento (14 dias)</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.salesByDay}>

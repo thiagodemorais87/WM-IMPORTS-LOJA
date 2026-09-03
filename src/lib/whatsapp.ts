@@ -1,4 +1,4 @@
-import type { CartItem, Product, StoreSettings } from '@/types'
+import type { CartItem, CreateOrderResult, OrderItem, Product, StoreSettings } from '@/types'
 import { digitsOnly, effectivePrice, formatCurrency } from '@/lib/format'
 
 export function buildWhatsAppLink(phone: string | null | undefined, message: string) {
@@ -40,6 +40,43 @@ export function cartRequestMessage(settings: StoreSettings | null, items: CartIt
     '',
     'Gostaria de confirmar disponibilidade e valor.',
   ].join('\n')
+}
+
+export function orderConfirmationMessage(
+  settings: StoreSettings | null,
+  order: Pick<CreateOrderResult, 'order_number' | 'total_amount'>,
+  customerName: string,
+  items: OrderItem[],
+  notes?: string,
+) {
+  const store = settings?.store_name ?? 'WM Imports'
+  const itemLines = items.map((item, index) => {
+    const size =
+      item.variation_name && item.variation_name !== 'Único' ? ` — ${item.variation_name}` : ''
+    const qtyLabel = item.quantity === 1 ? '1 un' : `${item.quantity} un`
+    const lineTotal = formatCurrency(item.total_price)
+    return `${index + 1}. ${item.product_name}${size} — ${qtyLabel} — ${lineTotal}`
+  })
+
+  const lines = [
+    `Olá! Fiz um pedido na ${store}:`,
+    '',
+    `Pedido: ${order.order_number}`,
+    `Nome: ${customerName}`,
+    '',
+    'Itens:',
+    ...itemLines,
+    '',
+    `Total: ${formatCurrency(order.total_amount)}`,
+  ]
+
+  if (notes?.trim()) {
+    lines.push('', `Observação: ${notes.trim()}`)
+  }
+
+  lines.push('', 'Aguardo confirmação de pagamento e disponibilidade.')
+
+  return lines.join('\n')
 }
 
 export function instagramUrl(handle: string | null | undefined) {

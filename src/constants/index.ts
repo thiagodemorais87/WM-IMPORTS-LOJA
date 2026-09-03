@@ -25,6 +25,24 @@ export const PRODUCT_STATUS_LABELS = {
   archived: 'Arquivado',
 } as const
 
+export const ORDER_STATUS_LABELS = {
+  pending_payment: 'Aguardando pagamento',
+  paid: 'Pago',
+  preparing: 'Em preparação',
+  shipped: 'Enviado',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+} as const
+
+export const ORDER_STATUS_BADGE = {
+  pending_payment: { tone: 'warning' as const, emoji: '🟡' },
+  paid: { tone: 'success' as const, emoji: '🟢' },
+  preparing: { tone: 'metal' as const, emoji: '🔵' },
+  shipped: { tone: 'muted' as const, emoji: '🟣' },
+  completed: { tone: 'success' as const, emoji: '✅' },
+  cancelled: { tone: 'danger' as const, emoji: '🔴' },
+} as const
+
 export const BANNER_TYPE_LABELS = {
   institutional: 'Institucional',
   promotion: 'Promoção',

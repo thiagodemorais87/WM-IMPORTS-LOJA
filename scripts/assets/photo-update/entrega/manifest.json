@@ -1,0 +1,279 @@
+{
+  "generatedAt": "2026-09-01T17:57:11.374Z",
+  "products": [
+    {
+      "slug": "short-trydfit-preto",
+      "name": "Short Trydfit preto",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-creme",
+      "name": "Short Trydfit Creme",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-caqui",
+      "name": "Short Trydfit Caqui",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "marrom-trydfit",
+      "name": "Short Marrom Trydfit",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-azul",
+      "name": "Short Trydfit azul",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-verde",
+      "name": "Short Trydfit verde",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-modelo.jpg",
+          "tipo": "modelo"
+        }
+      ]
+    },
+    {
+      "slug": "fumaca-retangular",
+      "name": "Óculos Fumaca Retangular",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-produto.jpg",
+          "tipo": "produto",
+          "ref": "f89b3efb-9ea0-455e-9b53-d1972cf30c3b.jpg"
+        },
+        {
+          "filename": "04-produto.jpg",
+          "tipo": "produto",
+          "ref": "cef5f77c-1c35-4ba4-9212-c791ae011a0c.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "cristal-redondo",
+      "name": "Óculos Cristal Redondo",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-produto.jpg",
+          "tipo": "produto",
+          "ref": "765204b3-f17d-4e6f-a22c-1acd6d51b2f9.jpg"
+        },
+        {
+          "filename": "04-produto.jpg",
+          "tipo": "produto",
+          "ref": "e5ebb731-3756-400a-b72e-63003033ccd9.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "creme-translucido",
+      "name": "Óculos Creme Translucido",
+      "files": [
+        {
+          "filename": "01-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "02-modelo.jpg",
+          "tipo": "modelo"
+        },
+        {
+          "filename": "03-produto.jpg",
+          "tipo": "produto",
+          "ref": "3c81ff36-397c-4ee7-84db-5a8cda4d9938.jpg"
+        },
+        {
+          "filename": "04-produto.jpg",
+          "tipo": "produto",
+          "ref": "9c035c06-2dbc-4e4d-8e86-e21b053be6d7.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "adidas-neon-amarela",
+      "name": "T-Shirt Power Fit - Adidas Neon Amarela",
+      "files": [
+        {
+          "filename": "01-manter.jpg"
+        },
+        {
+          "filename": "02-manter.jpg"
+        },
+        {
+          "filename": "03-corrigida.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "adidas-preta-logo-manga",
+      "name": "T-Shirt Power Fit - Adidas Preta ",
+      "files": [
+        {
+          "filename": "01-modelo-logo.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-branca",
+      "files": [
+        {
+          "filename": "01-frente.jpg"
+        },
+        {
+          "filename": "02-costas.jpg"
+        },
+        {
+          "filename": "03-detalhe.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-preta-2",
+      "files": [
+        {
+          "filename": "01-frente.jpg"
+        },
+        {
+          "filename": "02-costas.jpg"
+        },
+        {
+          "filename": "03-detalhe.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-cinza",
+      "files": [
+        {
+          "filename": "01-frente.jpg"
+        },
+        {
+          "filename": "02-costas.jpg"
+        },
+        {
+          "filename": "03-detalhe.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-verde-claro",
+      "files": [
+        {
+          "filename": "01-frente.jpg"
+        },
+        {
+          "filename": "02-costas.jpg"
+        },
+        {
+          "filename": "03-detalhe.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-azul-claro",
+      "files": [
+        {
+          "filename": "01-frente.jpg"
+        },
+        {
+          "filename": "02-costas.jpg"
+        },
+        {
+          "filename": "03-detalhe.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,450 @@
+{
+  "generatedAt": "2026-09-01T19:15:15.868Z",
+  "products": [
+    {
+      "slug": "short-trydfit-preto",
+      "name": "Short Trydfit preto",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-preto\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-preto\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-preto\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-preto\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-preto-detalhe-3b8f4d03-edba-418c-84b4-81173b2f517a.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-creme",
+      "name": "Short Trydfit Creme",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-creme\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-creme\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-creme\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-creme\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-creme-detalhe-ca2b6d5a-e65c-4146-917d-73ef22940a5f.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-caqui",
+      "name": "Short Trydfit Caqui",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-caqui\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-caqui\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-caqui\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-caqui\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-bege-detalhe-62c21971-61ba-4bb0-8cc5-9d5f3e047cef.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "marrom-trydfit",
+      "name": "Short Marrom Trydfit",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\marrom-trydfit\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\marrom-trydfit\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\marrom-trydfit\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\marrom-trydfit\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-marrom-detalhe-3dc04311-3936-43de-862f-7c751053e865.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-azul",
+      "name": "Short Trydfit azul",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-azul\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-azul\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-azul\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-azul\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-azul-marinho-detalhe-9b814010-097c-4b16-aeb0-631f88295e13.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "short-trydfit-verde",
+      "name": "Short Trydfit verde",
+      "action": "manter 3 modelos + 1 close-up",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-verde\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-verde\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-verde\\03-modelo-3.jpg",
+          "filename": "03-modelo-3.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\short-trydfit-verde\\04-closeup.jpg",
+          "filename": "04-closeup.jpg",
+          "action": "adicionar",
+          "source": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\sources\\shorts\\shorts-treino-verde-agua-detalhe-4f62c06d-55ba-4f51-92f4-2d1d29d8ec89.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "creme-translucido",
+      "name": "Óculos Creme Translucido",
+      "action": "manter modelos + refs corretas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\creme-translucido\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\creme-translucido\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\creme-translucido\\03-produto-1.jpg",
+          "filename": "03-produto-1.jpg",
+          "action": "adicionar/substituir",
+          "source": "3c81ff36-397c-4ee7-84db-5a8cda4d9938.jpg"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\creme-translucido\\04-produto-2.jpg",
+          "filename": "04-produto-2.jpg",
+          "action": "adicionar/substituir",
+          "source": "9c035c06-2dbc-4e4d-8e86-e21b053be6d7.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "fumaca-retangular",
+      "name": "Óculos Fumaca Retangular",
+      "action": "manter modelos + refs corretas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\fumaca-retangular\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\fumaca-retangular\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\fumaca-retangular\\03-produto-1.jpg",
+          "filename": "03-produto-1.jpg",
+          "action": "adicionar/substituir",
+          "source": "f89b3efb-9ea0-455e-9b53-d1972cf30c3b.jpg"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\fumaca-retangular\\04-produto-2.jpg",
+          "filename": "04-produto-2.jpg",
+          "action": "adicionar/substituir",
+          "source": "cef5f77c-1c35-4ba4-9212-c791ae011a0c.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "cristal-redondo",
+      "name": "Óculos Cristal Redondo",
+      "action": "manter modelos + refs corretas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\cristal-redondo\\01-modelo-1.jpg",
+          "filename": "01-modelo-1.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\cristal-redondo\\02-modelo-2.jpg",
+          "filename": "02-modelo-2.jpg",
+          "action": "manter",
+          "source": "supabase"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\cristal-redondo\\03-produto-1.jpg",
+          "filename": "03-produto-1.jpg",
+          "action": "adicionar/substituir",
+          "source": "765204b3-f17d-4e6f-a22c-1acd6d51b2f9.jpg"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\cristal-redondo\\04-produto-2.jpg",
+          "filename": "04-produto-2.jpg",
+          "action": "adicionar/substituir",
+          "source": "e5ebb731-3756-400a-b72e-63003033ccd9.jpg"
+        }
+      ]
+    },
+    {
+      "slug": "adidas-neon-amarela",
+      "name": "T-Shirt Power Fit - Adidas Neon Amarela",
+      "action": "frente corrigida + manter 2 fotos",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\adidas-neon-amarela\\01-frente-corrigida.jpg",
+          "filename": "01-frente-corrigida.jpg",
+          "action": "substituir capa",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\adidas-neon-amarela\\02-manter.jpg",
+          "filename": "02-manter.jpg",
+          "action": "manter"
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\adidas-neon-amarela\\03-manter.jpg",
+          "filename": "03-manter.jpg",
+          "action": "manter"
+        }
+      ]
+    },
+    {
+      "slug": "adidas-preta-logo-manga",
+      "name": "T-Shirt Power Fit - Adidas Preta ",
+      "action": "frente corrigida",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\adidas-preta-logo-manga\\01-frente-corrigida.jpg",
+          "filename": "01-frente-corrigida.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "slug": "camisa-on-branca",
+      "action": "substituir por fotos modelo novas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-branca\\01-frente.jpg",
+          "filename": "01-frente.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-branca\\02-costas.jpg",
+          "filename": "02-costas.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-branca\\03-detalhe.jpg",
+          "filename": "03-detalhe.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        }
+      ],
+      "isNew": false,
+      "name": "camisa on branca"
+    },
+    {
+      "slug": "camisa-on-preta-2",
+      "action": "substituir por fotos modelo novas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-preta-2\\01-frente.jpg",
+          "filename": "01-frente.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-preta-2\\02-costas.jpg",
+          "filename": "02-costas.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-preta-2\\03-detalhe.jpg",
+          "filename": "03-detalhe.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        }
+      ],
+      "isNew": false,
+      "name": "camisa on preta"
+    },
+    {
+      "slug": "camisa-on-cinza",
+      "action": "substituir por fotos modelo novas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-cinza\\01-frente.jpg",
+          "filename": "01-frente.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-cinza\\02-costas.jpg",
+          "filename": "02-costas.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-cinza\\03-detalhe.jpg",
+          "filename": "03-detalhe.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        }
+      ],
+      "isNew": false,
+      "name": "camisa on cinza"
+    },
+    {
+      "slug": "camisa-on-verde-claro",
+      "action": "substituir por fotos modelo novas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-verde-claro\\01-frente.jpg",
+          "filename": "01-frente.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-verde-claro\\02-costas.jpg",
+          "filename": "02-costas.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-verde-claro\\03-detalhe.jpg",
+          "filename": "03-detalhe.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        }
+      ],
+      "isNew": false,
+      "name": "camisa on verde claro"
+    },
+    {
+      "slug": "camisa-on-azul-claro",
+      "action": "substituir por fotos modelo novas",
+      "files": [
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-azul-claro\\01-frente.jpg",
+          "filename": "01-frente.jpg",
+          "action": "substituir",
+          "isPrimary": true
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-azul-claro\\02-costas.jpg",
+          "filename": "02-costas.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        },
+        {
+          "path": "C:\\Users\\Rogério\\Documents\\Projetos dev - PESSOAL\\WM-IMPORTS-LOJA\\scripts\\assets\\photo-update\\previews\\camisa-on-azul-claro\\03-detalhe.jpg",
+          "filename": "03-detalhe.jpg",
+          "action": "substituir",
+          "isPrimary": false
+        }
+      ],
+      "isNew": true,
+      "name": "camisa on azul claro"
+    }
+  ]
+}

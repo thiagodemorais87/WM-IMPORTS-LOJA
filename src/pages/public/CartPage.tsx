@@ -3,15 +3,11 @@ import { Seo } from '@/components/ui/Seo'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useCart } from '@/contexts/CartContext'
-import { useSettings } from '@/contexts/SettingsContext'
 import { formatCurrency } from '@/lib/format'
-import { buildWhatsAppLink, cartRequestMessage } from '@/lib/whatsapp'
 
 export function CartPage() {
   const { items, updateQuantity, removeItem, clear, count } = useCart()
-  const settings = useSettings()
   const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
-  const href = buildWhatsAppLink(settings?.whatsapp, cartRequestMessage(settings, items))
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -63,27 +59,20 @@ export function CartPage() {
             <span className="text-xl text-white">{formatCurrency(total)}</span>
           </div>
           <p className="text-xs text-metal-500">
-            O valor exibido pode ser ajustado no atendimento. A mensagem ao WhatsApp não envia preço — só a lista de
-            itens para confirmação.
+            Revise seus itens e finalize o pedido. Você informará seus dados na próxima etapa e será direcionado ao
+            WhatsApp.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            {href ? (
-              <a
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1"
-                onClick={() => clear()}
-              >
-                <Button variant="whatsapp" className="w-full">
-                  Solicitar pelo WhatsApp
-                </Button>
-              </a>
-            ) : (
-              <Button variant="whatsapp" disabled className="flex-1">
-                WhatsApp não configurado
+            <Link to="/checkout" className="flex-1">
+              <Button variant="whatsapp" className="w-full">
+                Finalizar pedido
               </Button>
-            )}
+            </Link>
+            <Link to="/produtos" className="flex-1">
+              <Button variant="ghost" className="w-full">
+                Continuar comprando
+              </Button>
+            </Link>
             <Button variant="ghost" onClick={clear}>
               Limpar
             </Button>

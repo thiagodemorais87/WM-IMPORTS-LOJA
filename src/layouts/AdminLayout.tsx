@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
+  ClipboardList,
   Image,
   LayoutDashboard,
   LogOut,
@@ -25,6 +26,7 @@ const links = [
   { to: '/admin/categorias', label: 'Categorias', icon: Tags },
   { to: '/admin/banners', label: 'Banners', icon: Image },
   { to: '/admin/destaques', label: 'Diferenciais', icon: Sparkles },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ClipboardList },
   { to: '/admin/vendas', label: 'Vendas', icon: ShoppingBag },
   { to: '/admin/estoque', label: 'Estoque', icon: Warehouse },
   { to: '/admin/configuracoes', label: 'Configurações', icon: Settings },
