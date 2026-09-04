@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Seo } from '@/components/ui/Seo'
@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/Button'
 import { Field, Input, Textarea } from '@/components/ui/Field'
 import { useCart } from '@/contexts/CartContext'
 import { useSettings } from '@/contexts/SettingsContext'
+import { clearBuyNow, getBuyNowItems } from '@/lib/buy-now'
 import { checkoutFormSchema, type CheckoutFormValues } from '@/lib/order-validation'
 import { formatCurrency } from '@/lib/format'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { buildWhatsAppLink, orderConfirmationMessage } from '@/lib/whatsapp'
 import { createOrder } from '@/services/orders.service'
 import { queueOrderReceivedEmail } from '@/lib/order-email'
-import type { CreateOrderResult } from '@/types'
+import type { CartItem, CreateOrderResult } from '@/types'
 
 const emptyForm: CheckoutFormValues = {
   customer_name: '',
@@ -22,8 +23,9 @@ const emptyForm: CheckoutFormValues = {
 }
 
 export function CheckoutPage() {
-  const { items, count, clear } = useCart()
+  const { items: cartItems, clear } = useCart()
   const settings = useSettings()
+  const [buyNowItems] = useState<CartItem[]>(() => getBuyNowItems())
   const [form, setForm] = useState<CheckoutFormValues>(emptyForm)
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormValues, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -31,9 +33,15 @@ export function CheckoutPage() {
   const [whatsappHref, setWhatsappHref] = useState<string | null>(null)
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null)
 
-  const estimatedTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
+  const isBuyNow = buyNowItems.length > 0
+  const items = isBuyNow ? buyNowItems : cartItems
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  const estimatedTotal = useMemo(
+    () => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+    [items],
+  )
 
-  if (count === 0 && !success) {
+  if (itemCount === 0 && !success) {
     return <Navigate to="/carrinho" replace />
   }
 
@@ -78,7 +86,12 @@ export function CheckoutPage() {
       )
       const href = buildWhatsAppLink(settings?.whatsapp, message)
 
-      clear()
+      if (isBuyNow) {
+        clearBuyNow()
+      } else {
+        clear()
+      }
+
       setSuccess(order)
       setWhatsappHref(href)
       setConfirmationEmail(parsed.data.customer_email)
@@ -154,7 +167,7 @@ export function CheckoutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <Seo title="Checkout" path="/checkout" robots="noindex, nofollow" />
-      <h1 className="font-display text-4xl">Finalizar pedido</h1>
+      <h1 className="font-display text-4xl">{isBuyNow ? 'Compra rápida' : 'Finalizar pedido'}</h1>
       <p className="mt-2 text-sm text-metal-400">
         Preencha seus dados para registrar o pedido. Não há pagamento online — você será direcionado ao WhatsApp para
         confirmar pagamento e disponibilidade.
@@ -217,11 +230,19 @@ export function CheckoutPage() {
             >
               {submitting ? 'Registrando pedido…' : 'Finalizar pedido'}
             </Button>
-            <Link to="/carrinho" className="flex-1">
-              <Button type="button" variant="ghost" className="w-full">
-                Voltar ao carrinho
-              </Button>
-            </Link>
+            {isBuyNow ? (
+              <Link to="/produtos" className="flex-1">
+                <Button type="button" variant="ghost" className="w-full">
+                  Continuar comprando
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/carrinho" className="flex-1">
+                <Button type="button" variant="ghost" className="w-full">
+                  Voltar ao carrinho
+                </Button>
+              </Link>
+            )}
           </div>
         </form>
 

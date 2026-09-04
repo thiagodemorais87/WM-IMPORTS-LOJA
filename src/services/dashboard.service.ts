@@ -42,8 +42,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const threshold = settings?.low_stock_threshold ?? 3
   const active = products.filter((product) => product.status === 'active')
   const units = products.reduce((sum, product) => sum + totalStock(product.product_variants ?? []), 0)
-  const outOfStock = products.filter((product) => totalStock(product.product_variants ?? []) === 0).length
+  const outOfStock = products.filter((product) => product.status === 'sold_out').length
   const lowStock = products.filter((product) => {
+    if (product.status === 'sold_out' || product.status === 'archived') return false
     const qty = totalStock(product.product_variants ?? [])
     return qty > 0 && qty <= threshold
   }).length

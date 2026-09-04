@@ -23,6 +23,7 @@ export const PRODUCT_STATUS_LABELS = {
   draft: 'Rascunho',
   active: 'Ativo',
   archived: 'Arquivado',
+  sold_out: 'Esgotado',
 } as const
 
 export const ORDER_STATUS_LABELS = {

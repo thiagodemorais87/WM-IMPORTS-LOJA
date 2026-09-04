@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'none'
 
-export type ProductStatus = 'draft' | 'active' | 'archived'
+export type ProductStatus = 'draft' | 'active' | 'archived' | 'sold_out'
 
 export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'outro'
 

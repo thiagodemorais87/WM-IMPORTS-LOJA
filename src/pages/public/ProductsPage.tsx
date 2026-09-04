@@ -87,14 +87,16 @@ export function ProductsPage() {
       </Field>
       <Field label="Disponibilidade">
         <Select
-          value={filters.availability}
+          value={filters.availability === 'out_of_stock' ? 'all' : filters.availability}
           onChange={(event) =>
-            setFilters((current) => ({ ...current, availability: event.target.value as CatalogFilters['availability'] }))
+            setFilters((current) => ({
+              ...current,
+              availability: event.target.value as CatalogFilters['availability'],
+            }))
           }
         >
           <option value="all">Todas</option>
           <option value="in_stock">Disponíveis</option>
-          <option value="out_of_stock">Esgotados</option>
         </Select>
       </Field>
       <div className="grid grid-cols-2 gap-3">

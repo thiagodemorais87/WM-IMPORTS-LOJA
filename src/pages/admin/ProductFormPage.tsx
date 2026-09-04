@@ -228,6 +228,7 @@ export function ProductFormPage() {
             <Select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ProductStatus }))}>
               <option value="draft">Rascunho</option>
               <option value="active">Ativo</option>
+              <option value="sold_out">Esgotado</option>
               <option value="archived">Arquivado</option>
             </Select>
           </Field>

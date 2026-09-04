@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Seo } from '@/components/ui/Seo'
 import { ProductGallery } from '@/components/public/ProductGallery'
@@ -11,14 +11,15 @@ import { PageLoader } from '@/components/ui/Spinner'
 import { getPublicProduct } from '@/services/products.service'
 import { useCart } from '@/contexts/CartContext'
 import { useSettings } from '@/contexts/SettingsContext'
+import { setBuyNowItem } from '@/lib/buy-now'
 import { availableSizes, productHasStock, publicMaxQuantity, variantIsInStock } from '@/lib/stock'
 import { effectivePrice, formatCurrency } from '@/lib/format'
-import { buildWhatsAppLink, productInterestMessage } from '@/lib/whatsapp'
 import { SITE_URL } from '@/constants'
 import type { ProductWithRelations } from '@/types'
 
 export function ProductDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { addItem } = useCart()
   const settings = useSettings()
   const [product, setProduct] = useState<ProductWithRelations | null>(null)
@@ -55,11 +56,6 @@ export function ProductDetailPage() {
     }
     setQuantity((current) => Math.min(current, maxQty))
   }, [maxQty, variantId])
-
-  const waHref = useMemo(() => {
-    if (!product || !variant) return null
-    return buildWhatsAppLink(settings?.whatsapp, productInterestMessage(settings, product, variant.size_label, quantity))
-  }, [product, variant, quantity, settings])
 
   if (loading) return <PageLoader />
   if (error) return <div className="mx-auto max-w-7xl px-4 py-16"><ErrorState message={error} /></div>
@@ -194,18 +190,31 @@ export function ProductDetailPage() {
           >
             Adicionar ao carrinho
           </Button>
-          {waHref && variant && maxQty ? (
-            <a href={waHref} target="_blank" rel="noreferrer">
-              <Button variant="whatsapp">Comprar pelo WhatsApp</Button>
-            </a>
-          ) : (
-            <Button variant="whatsapp" disabled>
-              Comprar pelo WhatsApp
-            </Button>
-          )}
+          <Button
+            variant="whatsapp"
+            disabled={!variant || !maxQty}
+            onClick={() => {
+              if (!variant || !product) return
+              setBuyNowItem({
+                productId: product.id,
+                variantId: variant.id,
+                name: product.name,
+                sizeLabel: variant.size_label,
+                quantity,
+                unitPrice: price,
+                imageUrl: image?.url ?? null,
+                maxQuantity: publicMaxQuantity(variant),
+              })
+              navigate('/checkout')
+            }}
+          >
+            Comprar pelo WhatsApp
+          </Button>
         </div>
         {!settings?.whatsapp ? (
-          <p className="mt-3 text-xs text-metal-500">O WhatsApp da loja ainda não foi configurado no painel.</p>
+          <p className="mt-3 text-xs text-metal-500">
+            O WhatsApp da loja ainda não foi configurado no painel. O pedido será registrado mesmo assim.
+          </p>
         ) : null}
 
         {product.additional_info ? (

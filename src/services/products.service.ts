@@ -118,12 +118,6 @@ export async function listPublicProducts(filters: Partial<CatalogFilters> = {}) 
     )
   }
 
-  if (filters.availability === 'out_of_stock') {
-    products = products.filter((product) =>
-      product.variants.every((variant) => !(variant.in_stock ?? variant.quantity > 0)),
-    )
-  }
-
   if (filters.minPrice) {
     const min = Number(filters.minPrice)
     products = products.filter((product) => Number(product.promotional_price ?? product.price) >= min)

@@ -72,6 +72,7 @@ export function ProductsListPage() {
         <Select value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="all">Todos os status</option>
           <option value="active">Ativos</option>
+          <option value="sold_out">Esgotados</option>
           <option value="draft">Rascunhos</option>
           <option value="archived">Arquivados</option>
         </Select>
@@ -104,7 +105,17 @@ export function ProductsListPage() {
                   <td className="px-4 py-3">{totalStock(product.variants)}</td>
                   <td className="px-4 py-3">{formatCurrency(product.price)}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={product.status === 'active' ? 'success' : product.status === 'archived' ? 'muted' : 'warning'}>
+                    <Badge
+                      tone={
+                        product.status === 'active'
+                          ? 'success'
+                          : product.status === 'sold_out'
+                            ? 'danger'
+                            : product.status === 'archived'
+                              ? 'muted'
+                              : 'warning'
+                      }
+                    >
                       {PRODUCT_STATUS_LABELS[product.status]}
                     </Badge>
                   </td>
